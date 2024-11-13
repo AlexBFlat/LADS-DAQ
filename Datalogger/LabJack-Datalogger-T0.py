@@ -8,7 +8,7 @@ import u3                     # Imports UE3 Library.
 import traceback              # Imports traceback
 
 MAX_REQUESTS = 75     # MAX_REQUESTS is # of packets to be read.
-SCAN_FREQUENCY = 15000 # Sets the data scan frequency.
+SCAN_FREQUENCY = 10000 # Sets the data scan frequency.
 
 # Connection initialization for a UE3
 d = u3.U3()                    # Simplified variable for calling the UE3.
