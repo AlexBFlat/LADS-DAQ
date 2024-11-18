@@ -37,18 +37,21 @@ visce = 0.7714e-4; % Density at the exit in kg/m3.
 ae = 952.8956;     % Sonic velocity at the exit of the nozzle in m/s.
 Me = 2.8622;       % Exit mach number.
 
+% Nozzle Performance Parameters
+
+
 %% Geometric Constants
 % Chamber size
-Dc = 19.46e-3;     % Chamber diameter in m.
-Dt = 9.73e-3;      % Throat diameter in m.
-Lcyl = 245.07e-3;  % Pre-curve chamber length in m.
-Lc = 259.34e-3;    % Length of combustion chamber up to throat in m.
-Lstar = 1016e-3;   % Characteristic length in m.
-R1 = 7.30e-3;      % Chamber-to-throat radius in m.
-R2 = 14.05e-3;     % Chamber-to-converging radius in m.
-b = 30;            % Chamber-to-converging angle.
-AcAt = 4;          % Chamber-to-throat ratio.
-
+%% OLD
+%Dc = 19.46e-3;     % Chamber diameter in m.
+%Dt = 9.73e-3;      % Throat diameter in m.
+%Lcyl = 245.07e-3;  % Pre-curve chamber length in m.
+%Lc = 259.34e-3;    % Length of combustion chamber up to throat in m.
+%Lstar = 1016e-3;   % Characteristic length in m.
+%R1 = 7.30e-3;      % Chamber-to-throat radius in m.
+%R2 = 14.05e-3;     % Chamber-to-converging radius in m.
+%b = 30;            % Chamber-to-converging angle.
+%AcAt = 4;          % Chamber-to-throat ratio.
 
 % Nozzle size
 
