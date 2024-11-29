@@ -10,13 +10,25 @@ import traceback              # Imports traceback
 MAX_REQUESTS = 75     # MAX_REQUESTS is # of packets to be read.
 SCAN_FREQUENCY = 12000 # Sets the data scan frequency.
 
+# Does somethn
+try:
+    numChannels = int(sys.argv[1])
+except:
+    print("Missing or invalid integer value argument that specifies the number of channels")
+    print("Exiting.")
+    sys.exit()
+quickSample = 1
+longSettling = 0
+latestAinValues = [0] * numChannels
+numIterations = 1000
+
 # Connection initialization for a UE3
 d = u3.U3()                    # Simplified variable for calling the UE3.
 d.configU3()                   # Learns if the U3 is HV or LV.
 d.getCalibrationData()         # Gets the calibration data (converts bytes to volts) from the U3's memory.
 d.configIO(FIOAnalog = 15)        # Sets FIO0 and FIO1 to Analog.
 print("Configuring U3 stream") # Lets the user know program is configuring for stream.
-d.streamConfig(NumChannels=4, PChannels = [0, 1, 2, 3], NChannels = [31, 31, 31, 31], Resolution=3, ScanFrequency=SCAN_FREQUENCY)
+d.streamConfig(NumChannels=25, PChannels = [0, 1, 2, 3, 4, 5, 6, 7, 8], NChannels = [31, 31, 31, 31, ], Resolution=3, ScanFrequency=SCAN_FREQUENCY)
 
 # Allows for error handling.
 try:

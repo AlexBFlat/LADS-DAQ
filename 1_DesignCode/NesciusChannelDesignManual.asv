@@ -22,13 +22,9 @@ etac = 10;
 % Calculations
 nozvals = nozlsolv(gamma, Pcns, Tcns, R, g, Mi, Pe, F, etac);
 Pinj = nozvals(1,1); Tinj = nozvals(1,2); Vinj = nozvals(1,3); vinj = nozvals(1,4);
-Pi = nozvals(2,1); Ti = nozvals(2,2); Vi = nozvals(2,3); vi = nozvals(2,4); Ac = nozvals(1,6);
-Pt = nozvals(3,1); Tt = nozvals(3,2); Vt = nozvals(3,3); vt = nozvals(3,4); Mt = nozvals(3,5); At = nozvals(3, 6);
-Pe = nozvals(4,1); Te = nozvals(4,2); Ve = nozvals(4,3); ve = nozvals(4,4); Me = nozvals(4,5); Ae = nozvals(4, 6);
-
-% Plotting
-Chamlinx = [-4 -4];
-chamliny = [];
+Pi = nozvals(2,1); Ti = nozvals(2,2); Vi = nozvals(2,3); vi = nozvals(2,4); 
+Pt = nozvals(3,1); Tt = nozvals(3,2); Vt = nozvals(3,3); vt = nozvals(3,4); Mt = nozvals(3,5);
+Pe = nozvals(4,1); Te = nozvals(4,2); Ve = nozvals(4,3); ve = nozvals(4,4); Me = nozvals(4,5);
 
 
 % Function nozlsolv finds most properties within the nozzle.
@@ -68,7 +64,7 @@ eta = ((2/(gammae+1))^(1/(gammae-1))*(Pcns/Pe)^(1/gammae))/sqrt((gammae+1)/(gamm
 Ae = eta*At;
 c = ve;
 Cf = F/(At*Pcns);
-Cstar = sqrt(g*gammae*Re*Tcns)/(gammae*sqrt((2/(gammae+1))^((gammae+1)/(gammae-1))));
+Cstar = sqrt(g*gammae*R*Tcns)/(gammae*sqrt((2/(gamma+1))^((gamma+1)/(gamma-1))));
 Istc = F/wdot;
 out = [Pinj Tinj Vinj vinj 0 Ac;Pi Ti Vi vi Mi Ac;Pt Tt Vt vt Mt At;Pe Te Ve ve Me Ae; wdot eta Cf c Cstar Istc];        % Output array.
 end
