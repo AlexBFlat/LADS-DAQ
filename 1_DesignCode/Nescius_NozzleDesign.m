@@ -5,7 +5,7 @@ clear; close all; clc;
 Pcns = 420;          % Chamber stagnation pressure in psi.
 Tcns = 5800.752;       % Chamber temperature in R.
 OF = 1.5;            % Oxidizer to fuel ratio.
-F = 69;              % Thrust in N.
+F = 69;              % Thrust in lbs.
 
 % Design Parameters
 psi2pa = 6894.76;    % Conversion for psi to pa.
