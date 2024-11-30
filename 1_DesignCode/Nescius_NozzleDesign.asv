@@ -13,10 +13,8 @@ lb2N = 4.448;        % Conversion for lbf to N.
 rhoLOX = 1141;       % Liquid Oxygen density in kg/m3.
 rhoETH = 789;        % Ethanol density in kg/m3.
 g = 32.2;
-%gamma = [1.1159 1.1159 1.1525 1.1764];     
-gamma = [1.1159 1.1159 1.1159 1.1159];
+gamma = [1.1159 1.1159 1.1525 1.1764];     
 M = [22.9252 22.9256 23.1886 24.0264];
-%M = [22.9252 22.9252 22.9252 22.9252 ];
 R = 1544./M;
 Mi = .0459;
 Pe = 14.7;
@@ -36,14 +34,13 @@ at = sqrt(g*gammat*Rt*Tt);                    % Finds throat speed of sound.
 Mt = vt/at;                                   % Checks throat mach number.
 At = 144*Wdot*Vt/vt;                          % Finds throat area in in^2.
 
-outputtabl = ["Station", "Pressure (psia)", "Temperature (R)", "Specific Volume (ft3/lbm)", "Velocity (ft/s)";"Injector", 0, 0, 0, 0;"Nozzle Inlet", 0, 0, 0, 0;"Throat", 0, 0, 0, 0;"Exit", 0, 0, 0, 0];
 % Nozzle injector plane
 gammainj = gamma(1); % Selects gamma for injector plane.
 Rinj = R(1);         % Selects R for injector plane.
 Pinj = Pcns*((1+gammainj*Mi^2)/((1+(gammainj-1)/2*Mi^2)^(gammainj/(gammainj-1)))); % Finds pressure for injector plane in psia.
 Tinj = Tcns;            % Finds injector temp.
-Vinj = Rinj*Tinj/144/Pinj; % Finds injector specific volume.
-vinj = 0;
+Vinj = R*Tinj/144/Pinj; % Finds injector specific volume.
+
 % Nozzle inlet plane
 gammai = gamma(2);
 Ri = R(2);
@@ -51,8 +48,6 @@ Ac = etac*At; % Finds chamber area in in^2.
 Pi = Pinj/(1+gammai*Mi^2); % Finds nozzle inlet pressure in psia.
 Ti = Pcns/(1+1/2*(gammai-1)*Mi^2); % Finds nozzle inlet temp in R.
 Vi = Ri*Ti/(144*Pi);               % Finds nozzle inlet specific volume.
-ai = sqrt(g*gammai*Ri*Ti);
-vi = Mi*ai;
 
 % Nozzle exit plane
 gammae = gamma(4);
@@ -65,6 +60,4 @@ Me = ve/ae; % Finds exit mach number
 IspCHK = ve/g; % Checks Isp.
 
 % Output setting
-outputtabl(2,2) = Pinj; outputtabl(2,3) = Tinj; outputtabl(2,4) = Vinj; outputtabl(2,5) = vinj;
-outputtabl(3,2) = Pi; outputtabl(3,3) = Ti; outputtabl(3,4) = Vi; outputtabl(3,5) = vi;
-outputtabl(4,2) = Pi; outputtabl(4,3) = Ti; outputtabl(4,4) = Vi; outputtabl(4,5) = vi;
+outputtabl = ["Station", "Pressure (psia)", "Temperature (R)", "Specific Volume (ft3/lbm)", "Velocity (ft/s)"; "Injector", 0, 0, 0, 0; "Injector", 0, 0, 0, 0;"Injector", 0, 0, 0, 0;]
