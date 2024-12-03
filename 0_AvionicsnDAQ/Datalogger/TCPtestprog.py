@@ -1,4 +1,5 @@
 import socket
+import struct
 import json  # To send data in JSON format
 
 # Define the host and port for the server
@@ -24,13 +25,13 @@ print(f"Connection established with {client_address}")
 while True:
     try:
         # Example data to send (can be any data you want, e.g., a list, dictionary, or string)
-        data_to_send = {"message": "Hello from Python!"}
+        number_to_send = 42
 
         # Serialize the data to JSON format
-        json_data = json.dumps(data_to_send)
+        packed_data = struct.pack('!I', number_to_send)
 
         # Send the serialized data to the client (LabVIEW)
-        connection.sendall(json_data.encode('I32'))
+        connection.sendall(packed_data)
 
         print("Data sent to LabVIEW.")
     except:
