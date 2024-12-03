@@ -35,6 +35,9 @@ while True:
         print("Data sent to LabVIEW.")
     except:
         print("Error connecting to LabVIEW")
+        connection.close()
+        server_socket.close()
+        break
 
 
 connection.close()
