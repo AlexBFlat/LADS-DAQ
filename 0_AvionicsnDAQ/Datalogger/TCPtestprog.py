@@ -18,20 +18,21 @@ server_socket.listen(1)
 print(f"Server listening on {host}:{port}...")
 
 # Wait for a connection from the client (LabVIEW)
-connection, client_address = server_socket.accept()
+#connection, client_address = server_socket.accept()
 
-print(f"Connection established with {client_address}")
+#print(f"Connection established with {client_address}")
+print("TCP Server started.")
 
 while True:
     try:
         # Example data to send (can be any data you want, e.g., a list, dictionary, or string)
-        number_to_send = 42
+        numbers_array = [1, 2, 3, 4, 5]
 
         # Serialize the data to JSON format
-        packed_data = struct.pack('!I', number_to_send)
+        array_json = json.dumps(numbers_array)
 
         # Send the serialized data to the client (LabVIEW)
-        connection.sendall(packed_data)
+        connection.sendall(array_json.encode('utf-8'))
 
         print("Data sent to LabVIEW.")
     except:
