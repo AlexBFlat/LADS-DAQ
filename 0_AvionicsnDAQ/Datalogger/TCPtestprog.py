@@ -18,10 +18,9 @@ server_socket.listen(1)
 print(f"Server listening on {host}:{port}...")
 
 # Wait for a connection from the client (LabVIEW)
-#connection, client_address = server_socket.accept()
+connection, client_address = server_socket.accept()
 
-#print(f"Connection established with {client_address}")
-print("TCP Server started.")
+print(f"Connection established with {client_address}")
 
 while True:
     try:
