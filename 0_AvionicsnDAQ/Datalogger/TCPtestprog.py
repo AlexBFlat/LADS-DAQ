@@ -21,18 +21,21 @@ connection, client_address = server_socket.accept()
 
 print(f"Connection established with {client_address}")
 
-try:
-    # Example data to send (can be any data you want, e.g., a list, dictionary, or string)
-    data_to_send = {"message": "Hello from Python!"}
+while True:
+    try:
+        # Example data to send (can be any data you want, e.g., a list, dictionary, or string)
+        data_to_send = {"message": "Hello from Python!"}
 
-    # Serialize the data to JSON format
-    json_data = json.dumps(data_to_send)
+        # Serialize the data to JSON format
+        json_data = json.dumps(data_to_send)
 
-    # Send the serialized data to the client (LabVIEW)
-    connection.sendall(json_data.encode('utf-8'))
+        # Send the serialized data to the client (LabVIEW)
+        connection.sendall(json_data.encode('utf-8'))
 
-    print("Data sent to LabVIEW.")
-finally:
-    # Close the connection when done
-    connection.close()
-    server_socket.close()
+        print("Data sent to LabVIEW.")
+    except:
+        print("Error connecting to LabVIEW")
+
+
+connection.close()
+server_socket.close()
