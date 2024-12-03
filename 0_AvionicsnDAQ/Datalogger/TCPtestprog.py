@@ -30,7 +30,7 @@ while True:
         json_data = json.dumps(data_to_send)
 
         # Send the serialized data to the client (LabVIEW)
-        connection.sendall(json_data.encode('utf-8'))
+        connection.sendall(json_data.encode('I32'))
 
         print("Data sent to LabVIEW.")
     except:
