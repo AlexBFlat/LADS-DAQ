@@ -5,7 +5,7 @@ import json  # To serialize the array into a string format
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # Bind the socket to the server's address and port
-server_address = ('192.168.56.1', 65432)
+server_address = ('192.168.1.82 ', 65432)
 server_socket.bind(server_address)
 
 # Enable the server to accept connections
