@@ -246,6 +246,8 @@ while True:
 
         # Send the serialized data to the client (LabVIEW)
         connection.sendall(array_string.encode('utf-8'))
+        data = connection.recv(1024)
+        print(f"Data: {data}")
     except Queue.Empty:
         if sdr.finished:
             print("Done reading from the Queue.")
