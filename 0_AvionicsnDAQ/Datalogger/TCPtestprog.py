@@ -5,7 +5,7 @@ import sys
 
 # Define the host and port for the server
 host = '0.0.0.0'  # Listen on all available interfaces (use specific IP for remote access)
-port = 39650     # Port to listen on (ensure it's open and available)
+port = 52553     # Port to listen on (ensure it's open and available)
 
 # Create a TCP/IP socket
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
