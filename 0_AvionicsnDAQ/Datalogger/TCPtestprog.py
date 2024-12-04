@@ -30,8 +30,12 @@ python_array = []
 while True:
     try:
         # Example data to send (can be any data you want, e.g., a list, dictionary, or string)
-        
-        python_array = [1.00, 2.00, 3.00, 4.00]
+        V1f = f"{v1:08.4f}"
+        V2f = f"{v2:08.4f}"
+        V3f = f"{v3:08.4f}"
+        V4f = f"{v4:08.4f}"
+
+        python_array = [V1f, V2f, V3f, V4f]
         array_string = ','.join(map(str, python_array))
         # Serialize the data to JSON format
 
