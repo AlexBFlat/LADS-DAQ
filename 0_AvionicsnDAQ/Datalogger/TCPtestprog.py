@@ -31,12 +31,7 @@ while True:
     try:
         # Example data to send (can be any data you want, e.g., a list, dictionary, or string)
         
-        i = i + .005
-
-        python_array[1] = 1.00
-        python_array[2] = 2.00
-        python_array[3] = 3.00
-        python_array[4] = 4.00
+        python_array = [1.00, 2.00, 3.00, 4.00]
         array_string = ','.join(map(str, python_array))
         # Serialize the data to JSON format
 
