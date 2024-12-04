@@ -30,6 +30,10 @@ python_array = []
 while True:
     try:
         # Example data to send (can be any data you want, e.g., a list, dictionary, or string)
+        v1 = v1 + .1
+        v2 = v2 + .2
+        v3 = v3 + .3
+        v4 = v4 + .4
         V1f = f"{v1:08.4f}"
         V2f = f"{v2:08.4f}"
         V3f = f"{v3:08.4f}"
