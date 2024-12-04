@@ -25,7 +25,7 @@ i = 1
 while True:
     try:
         # Example data to send (can be any data you want, e.g., a list, dictionary, or string)
-        numbers_array = "1 2 3 4"
+        numbers_array = '1 2 3 4'
         i = i + 1
 
         # Serialize the data to JSON format
