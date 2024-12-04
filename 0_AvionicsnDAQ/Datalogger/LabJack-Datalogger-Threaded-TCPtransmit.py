@@ -243,7 +243,7 @@ while True:
         python_array = [AIN0[:8], AIN1[:8], AIN2[:8], AIN3[:8], AIN4[:8], AIN5[:8], AIN6[:8],1]
         array_string = ','.join(map(str, python_array))
         # Serialize the data to JSON format
-        data = connection.recv(1)
+        data = connection.recv(1024)
         print(f"Data: {data.decode}")
         # Send the serialized data to the client (LabVIEW)
         connection.sendall(array_string.encode('utf-8'))
