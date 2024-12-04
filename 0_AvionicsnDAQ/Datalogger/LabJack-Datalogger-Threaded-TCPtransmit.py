@@ -240,7 +240,7 @@ while True:
         # Do some processing on the data to show off.
         #print("Average of values: AIN0: %s AIN1: %s AIN2: %s AIN3: %s AIN4: %s AIN5: %s AIN6: %s" % (AIN0[1], AIN1[1], AIN2[1], AIN3[1], AIN4[1], AIN5[1], AIN6[1]))
         #print("AIN0: %s AIN1: %s AIN2: %s AIN3: %s AIN4: %s AIN5: %s AIN6: %s" % (AIN0,AIN1,AIN2,AIN3,AIN4,AIN5,AIN6))  
-        python_array = [AIN0[:8], AIN1[:8], AIN2[:8], AIN3[:8], AIN4[:8], AIN5[:8], AIN6[:8]]
+        python_array = [AIN0[:8], AIN1[:8], AIN2[:8], AIN3[:8], AIN4[:8], AIN5[:8], AIN6[:8],1]
         array_string = ','.join(map(str, python_array))
         # Serialize the data to JSON format
 
