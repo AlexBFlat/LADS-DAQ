@@ -33,10 +33,10 @@ while True:
         
         i = i + .005
 
-        python_array(1) = np.float64(v1 + i)
-        python_array(2) = np.float64(v1 + i)
-        python_array(3) = np.float64(v1 + i)
-        python_array(4) = np.float64(v1 + i)
+        python_array[1] = np.float64(v1 + i)
+        python_array[2] = np.float64(v1 + i)
+        python_array[3] = np.float64(v1 + i)
+        python_array[4] = np.float64(v1 + i)
         array_string = ','.join(map(str, python_array))
         # Serialize the data to JSON format
 
