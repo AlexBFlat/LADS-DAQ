@@ -1,6 +1,7 @@
 import socket
 import struct
 import json  # To send data in JSON format
+import sys
 
 # Define the host and port for the server
 host = '0.0.0.0'  # Listen on all available interfaces (use specific IP for remote access)
@@ -25,14 +26,19 @@ i = 1
 while True:
     try:
         # Example data to send (can be any data you want, e.g., a list, dictionary, or string)
-        python_array = [1.00, 2.00, 3.00, 4.00]
+        python_array = [0.00, 2.00, 3.00, 4.00]
         array_string = ','.join(map(str, python_array))
         i = i + 1
 
         # Serialize the data to JSON format
 
         # Send the serialized data to the client (LabVIEW)
-        connection.sendall(array_string.encode('utf-8'))
+        sendarray = array_string.encode('utf-8')
+        PacketSize = sys.getsizeof(sendarray) + 6
+        PacketSizepadded = PacketSize + bytes(6 - len(PacketSize))
+        python_array.insert(0,PacketSizepadded)
+        array_string2 = ','.join(map(str, python_array))
+        connection.sendall(array_string2.encode('utf-8'))
 
         print("Data sent to LabVIEW.")
     except:
