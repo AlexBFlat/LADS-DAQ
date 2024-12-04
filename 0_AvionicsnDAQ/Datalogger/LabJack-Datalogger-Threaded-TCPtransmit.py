@@ -223,13 +223,20 @@ while True:
 
         # Convert the raw bytes (result['result']) to voltage data.
         r = d.processStreamData(result['result'])
-        AIN0 = f"{SampleAverager(r,"AIN0", 1):08.4f}"
-        AIN1 = f"{SampleAverager(r,"AIN1", 1):08.4f}"
-        AIN2 = f"{SampleAverager(r,"AIN2", 1):08.4f}"
-        AIN3 = f"{SampleAverager(r,"AIN3", 1):08.4f}"
-        AIN4 = f"{SampleAverager(r,"AIN4", 1):08.4f}"
-        AIN5 = f"{SampleAverager(r,"AIN5", 1):08.4f}"
-        AIN6 = f"{SampleAverager(r,"AIN6", 1):08.4f}"
+        pAIN0 = SampleAverager(r,"AIN0", 1)
+        AIN0 = f"{pAIN0:08.4f}"
+        pAIN1 = SampleAverager(r,"AIN1", 1)
+        AIN1 = f"{pAIN1:08.4f}"
+        pAIN2 = SampleAverager(r,"AIN2", 1)
+        AIN2 = f"{pAIN2:08.4f}"
+        pAIN3 = SampleAverager(r,"AIN3", 1)
+        AIN3 = f"{pAIN3:08.4f}"
+        pAIN4 = SampleAverager(r,"AIN4", 1)
+        AIN4 = f"{pAIN4:08.4f}"
+        pAIN5 = SampleAverager(r,"AIN5", 1)
+        AIN5 = f"{pAIN5:08.4f}"
+        pAIN6 = SampleAverager(r,"AIN6", 1)
+        AIN6 = f"{pAIN6:08.4f}"
         # Do some processing on the data to show off.
         #print("Average of values: AIN0: %s AIN1: %s AIN2: %s AIN3: %s AIN4: %s AIN5: %s AIN6: %s" % (AIN0[1], AIN1[1], AIN2[1], AIN3[1], AIN4[1], AIN5[1], AIN6[1]))
         print("AIN0: %s AIN4: %s" % (AIN0[1],AIN4[1]))    
