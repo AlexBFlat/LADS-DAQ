@@ -22,8 +22,8 @@ connection, client_address = server_socket.accept()
 
 print(f"Connection established with {client_address}")
 
-while True:
-    try:
+#while True:
+try:
         # Example data to send (can be any data you want, e.g., a list, dictionary, or string)
         numbers_array = [1, 2, 3, 4, 5]
 
@@ -34,11 +34,10 @@ while True:
         connection.sendall(array_json.encode('utf-8'))
 
         print("Data sent to LabVIEW.")
-    except:
-        print("Error connecting to LabVIEW")
-        connection.close()
-        server_socket.close()
-        break
+except:
+    print("Error connecting to LabVIEW")
+    connection.close()
+    server_socket.close()
 
 
 connection.close()
