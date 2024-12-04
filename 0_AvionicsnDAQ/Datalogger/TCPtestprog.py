@@ -25,7 +25,7 @@ print(f"Connection established with {client_address}")
 while True:
     try:
         # Example data to send (can be any data you want, e.g., a list, dictionary, or string)
-        numbers_array = [1, 2, 3, 4, 5]
+        numbers_array = [1]
 
         # Serialize the data to JSON format
         array_json = json.dumps(numbers_array)
