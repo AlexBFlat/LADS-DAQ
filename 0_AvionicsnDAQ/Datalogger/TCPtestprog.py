@@ -25,7 +25,7 @@ i = 1
 while True:
     try:
         # Example data to send (can be any data you want, e.g., a list, dictionary, or string)
-        python_array = [01.00, 02.00, 03.00, 04.00]
+        python_array = [1.00, 2.00, 3.00, 4.00]
         array_string = ','.join(map(str, python_array))
         i = i + 1
 
