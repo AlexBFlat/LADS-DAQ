@@ -33,10 +33,10 @@ while True:
         
         i = i + .005
 
-        python_array[1] = v1 + i
-        python_array[2] = v1 + i
-        python_array[3] = v1 + i
-        python_array[4] = v1 + i
+        python_array[1] = 1.00
+        python_array[2] = 2.00
+        python_array[3] = 3.00
+        python_array[4] = 4.00
         array_string = ','.join(map(str, python_array))
         # Serialize the data to JSON format
 
