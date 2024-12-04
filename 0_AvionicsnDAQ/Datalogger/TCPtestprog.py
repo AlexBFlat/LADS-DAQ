@@ -39,7 +39,7 @@ while True:
         V3f = f"{v3:08.4f}"
         V4f = f"{v4:08.4f}"
 
-        python_array = [V1f, V2f, V3f, V4f]
+        python_array = [V1f[:8], V2f[:8], V3f[:8], V4f[:8]]
         array_string = ','.join(map(str, python_array))
         # Serialize the data to JSON format
 
