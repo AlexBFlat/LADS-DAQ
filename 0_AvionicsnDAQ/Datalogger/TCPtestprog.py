@@ -38,7 +38,7 @@ while True:
         PacketSizepadded = PacketSize + bytes(6 - len(PacketSize))
         python_array.insert(0,PacketSizepadded)
         array_string2 = ','.join(map(str, python_array))
-        connection.sendall(array_string2.encode('utf-8'))
+        connection.sendall(array_string.encode('utf-8'))
 
         print("Data sent to LabVIEW.")
     except:
