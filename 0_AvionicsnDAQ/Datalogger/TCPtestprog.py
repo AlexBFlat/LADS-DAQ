@@ -1,6 +1,7 @@
 import socket
 import struct
 import json  # To send data in JSON format
+import numpy as np
 
 # Define the host and port for the server
 host = '0.0.0.0'  # Listen on all available interfaces (use specific IP for remote access)
@@ -21,14 +22,22 @@ print(f"Server listening on {host}:{port}...")
 connection, client_address = server_socket.accept()
 
 print(f"Connection established with {client_address}")
-i = 1
+v1 = 1.00
+v2 = 2.00
+v3 = 3.00
+v4 = 4.00
+python_array = []
 while True:
     try:
         # Example data to send (can be any data you want, e.g., a list, dictionary, or string)
-        python_array = [1.00, 2.00, 3.00, 4.00]
-        array_string = ','.join(map(str, python_array))
-        i = i + 1
+        
+        i = i + .005
 
+        python_array(1) = np.float64(v1 + i)
+        python_array(2) = np.float64(v1 + i)
+        python_array(3) = np.float64(v1 + i)
+        python_array(4) = np.float64(v1 + i)
+        array_string = ','.join(map(str, python_array))
         # Serialize the data to JSON format
 
         # Send the serialized data to the client (LabVIEW)
