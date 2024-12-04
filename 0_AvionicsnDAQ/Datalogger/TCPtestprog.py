@@ -25,14 +25,14 @@ i = 1
 while True:
     try:
         # Example data to send (can be any data you want, e.g., a list, dictionary, or string)
-        numbers_array = '1 2 3 4'
+        python_array = [1, 2, 3, 4]
+        array_string = ','.join(map(str, python_array))
         i = i + 1
 
         # Serialize the data to JSON format
-        array_json = json.dumps(numbers_array)
 
         # Send the serialized data to the client (LabVIEW)
-        connection.sendall(array_json.encode('utf-8'))
+        connection.sendall(array_string.encode('utf-8'))
 
         print("Data sent to LabVIEW.")
     except:
