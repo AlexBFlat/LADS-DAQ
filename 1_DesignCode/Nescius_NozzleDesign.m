@@ -3,135 +3,196 @@ clear; close all; clc;
 
 %% Engine constants, imported from RPA analysis
 Pcns = 420;          % Chamber stagnation pressure in psi.
-Tcns = 5802.507;       % Chamber temperature in R.
+Tcns = 5802.507;     % Chamber temperature in R.
 OF = 1.5;            % Oxidizer to fuel ratio.
 F = 69;              % Thrust in lbs.
 
 % Design Parameters
-psi2pa = 6894.76;    % Conversion for psi to pa.
-lb2N = 4.448;        % Conversion for lbf to N.
-rhoLOX = 1141;       % Liquid Oxygen density in kg/m3.
-rhoETH = 789;        % Ethanol density in kg/m3.
-g = 32.2;
-%gamma = [1.1598 1.1598 1.1561 1.1955];     
-gamma = [1.1598 1.1598 1.1598 1.1598];
+g = 32.2;            % Acceleration due to gravity in ft/s.
+gamma = [1.1598 1.1598 1.1561 1.1955];     
+%gamma = [1.1598 1.1598 1.1598 1.1598];
 M = [22.2429 22.2432 22.4689 23.0151];
 %M = [22.2429 22.2429 22.2429 22.2429 ];
-R = 1544./M;
-Mi = .0459;
-Pe = 14.7;
-epsilonc = 19;
+R = 1544./M;        % Determines gas constant in imperial units.
+Mi = .0459;         % Nozzle inlet mach number.
+Pe = 14.7;          % Exit pressure in psia.
+epsilonc = 19;      % Chamber area ratio.
 Isp = 252.5994;     % Theoretical Isp in s.
+ts = 1.4706e-3;     % Dwell time, sets how long combustion has to complete in the nozzle.
+theta = 45;         % Sets converging nozzle in degrees.
+R2 = 0.9480315;     % Sets nozzle to converging fillet radius in inches.
+Lengthfrac = 80;    % Sets length fraction of Rao nozzle. Use 60,70,80,90, or 100.
+Ndiv = 100;         % Sets number of divisions for the isentropic solver.
 
 %% Solving
-Wdot = F/Isp;       % Weight flow rate in lbf/s
-% Nozzle throat plane
-gammat = gamma(3);
-Rt = R(3);
-Pt = Pcns*(2/(gammat+1))^((gamma)/(gamma-1)); % Finds throat pressure.
-Tt = Tcns*(Pt/Pcns)^((gamma-1)/gamma);        % Finds throat temperature.
-Vt = Rt*Tt/144/Pt;                            % Finds throat specific volume in ft3/lbm.
-vt = sqrt((2*g*gammat)/(gammat+1)*Rt*Tcns);   % Finds throat velocity in ft/s.
-at = sqrt(g*gammat*Rt*Tt);                    % Finds throat speed of sound.
-Mt = vt/at;                                   % Checks throat mach number.
-At = 144*Wdot*Vt/vt;                          % Finds throat area in in^2.
-
-outputtabl = ["Station", "Pressure (psia)", "Temperature (R)", "Specific Volume (ft3/lbm)", "Velocity (ft/s)";"Injector", 0, 0, 0, 0;"Nozzle Inlet", 0, 0, 0, 0;"Throat", 0, 0, 0, 0;"Exit", 0, 0, 0, 0];
-% Nozzle injector plane
-gammainj = gamma(1); % Selects gamma for injector plane.
-Rinj = R(1);         % Selects R for injector plane.
-Pinj = Pcns*((1+gammainj*Mi^2)/((1+(gammainj-1)/2*Mi^2)^(gammainj/(gammainj-1)))); % Finds pressure for injector plane in psia.
-Tinj = Tcns;            % Finds injector temp.
-Vinj = Rinj*Tinj/144/Pinj; % Finds injector specific volume.
-vinj = 0;
-% Nozzle inlet plane
-gammai = gamma(2);
-Ri = R(2);
-Ac = epsilonc*At; % Finds chamber area in in^2.
-Pi = Pinj/(1+gammai*Mi^2); % Finds nozzle inlet pressure in psia.
-Ti = Tinj/(1+1/2*(gammai-1)*Mi^2); % Finds nozzle inlet temp in R.
-Vi = Ri*Ti/(144*Pi);               % Finds nozzle inlet specific volume.
-ai = sqrt(g*gammai*Ri*Ti);
-vi = Mi*ai;
-
-% Nozzle exit plane
-gammae = gamma(4);
-Re = R(4);
-Te = Tcns*(Pe/Pcns)^((gamma-1)/gamma); % Finds exit temp.
-Ve = Re*Te/144/Pe;                     % Finds exit specific volume.
-ve = sqrt(2*g*gammae/(gammae-1)*Re*Tcns*(1-(Pe/Pcns)^((gamma-1)/gamma))); % Finds exit velocity in ft/s
-ae = sqrt(g*gammae*Re*Te); % Finds exit speed of sound.
-Me = ve/ae; % Finds exit mach number
-IspCHK = ve/g; % Checks Isp.
-Ae = 144*Wdot*Ve/ve; % Finds exit area in in^2.
-epsilon = Ae/At; % Finds expansion ratio
-
-ts = 1.4706e-3;
+[stat, Wdot, epsilon] = stationsolve(gamma,R,Pcns,Tcns,Pe,Mi,F,Isp,g,epsilonc); % Solves for flow conditions at various stations within the nozzle.
+Pinj = str2double(stat(2,2)); Tinj = str2double(stat(2,3)); Vinj = str2double(stat(2,4)); vinj = str2double(stat(2,5)); Ac = str2double(stat(2,6));
+Pi = str2double(stat(3,2)); Ti = str2double(stat(3,3)); Vi = str2double(stat(3,4)); vi = str2double(stat(3,5));
+Pt = str2double(stat(4,2)); Tt = str2double(stat(4,3)); Vt = str2double(stat(4,4)); vt = str2double(stat(4,5)); At = str2double(stat(4,6));
+Pe = str2double(stat(5,2)); Te = str2double(stat(5,3)); Ve = str2double(stat(5,4)); ve = str2double(stat(5,5)); Ae = str2double(stat(5,6));
 
 % Chamber sizing
 Vavg = median([Vinj Vi]); % Finds chamber average specific volume in ft3/lb.
 Vc = Wdot*Vavg*ts; % Finds chamber volume in square feet.
 Vcin = Vc*12^3;    % Finds chamber volume in square inches.
-Lstar = Vcin/At;     % Finds Lstar in inches.
-syms Lc;
-theta = 45;
+Lstar = Vcin/At;   % Finds Lstar in inches.
+syms Lc;           % Sets the chamber length as a symbolic.
 func = At*(Lc*epsilonc+1/3*sqrt(At/pi)*cotd(theta)*(epsilonc^(1/3)-1))-Vcin; % Solves for chamber barrel length in inches.
-Lc = vpasolve(func); % Finds chamber length in inches.
-epsiloncG = linspace(2, 20);
-Lcvals = (Vcin./At - 1/3.*sqrt(At./pi).*cotd(theta).*(epsiloncG.^(1/3)-1))./epsiloncG;
-Dc = 2*sqrt(Ac/pi);
-Dt = 2*sqrt(At/pi);
-De = 2*sqrt(Ae/pi);
-Lcon = tan(theta)*((Dc-Dt)/2);
-Lct = Lcon + Lc; % Total combustion chamber length in in.
+Lc = vpasolve(func);% Finds chamber length in inches.
+Lcyl = Lc;          % Sets Lcyl as Lc.
+epsiloncG = linspace(2, 20); % Creates an epsilon array for graphing of epsilon values.
+Lcvals = (Vcin./At - 1/3.*sqrt(At./pi).*cotd(theta).*(epsiloncG.^(1/3)-1))./epsiloncG; % Sets chamber length vals for graphing.
+Dc = 2*sqrt(Ac/pi); % Finds chamber diameter in inches.
+Dt = 2*sqrt(At/pi); % Finds throat diameter in inches.
+De = 2*sqrt(Ae/pi); % Finds exit diameter in inches.
 
-% Output setting
-outputtabl(2,2) = Pinj; outputtabl(2,3) = Tinj; outputtabl(2,4) = Vinj; outputtabl(2,5) = vinj;
-outputtabl(3,2) = Pi; outputtabl(3,3) = Ti; outputtabl(3,4) = Vi; outputtabl(3,5) = vi;
-outputtabl(4,2) = Pt; outputtabl(4,3) = Tt; outputtabl(4,4) = Vt; outputtabl(4,5) = vt;
-outputtabl(5,2) = Pe; outputtabl(5,3) = Te; outputtabl(5,4) = Ve; outputtabl(5,5) = ve;
-fprintf('Isp error: %f(s)\n',IspCHK-Isp);
-
-% Plotting
-figure(1);
-plot(epsiloncG, Lcvals);
-title('Chamber length versus chamber area ratio');
+% Epsilon versus length plotting
+figure(1);              % Creates figure.
+plot(epsiloncG, Lcvals); % Plots epsilon versus length.
+title('Chamber length versus chamber area ratio'); 
 xlabel('Chamber area ratio');
 ylabel('Chamber length (in)');
-figure(2);
 % Chamber plotting
+[F1,F2,F3,F4,F5,F6,P0,P1, P2, P3, P4, P5, P6, F1v, F2v, F3v, F4v, F5v, F6v] = RaoNozzleGeom(Dc,Dt,De,Lcyl,R2,theta,epsilon,Lengthfrac); % Finds nozzle geometry functions and values and plots them.
+z = 0;
+%% Isentropic flow solving
+% Nozzle area solving
+Lco = P6(1) + abs(P0(1)); % Finds the total chamber length in inches.
+Leo = P6(1);             % Finds the total nozzle length in inches.
+L = Lco + Leo;         % Finds total length of chamber in inches.
+%% F1 area solving
+% From P0 to P1
+A1x = double(linspace(P0(1),P1(1),Ndiv));
+A1 = double(pi.*(linspace(F1(1),F1(1),Ndiv)).^2);
+[z,A1sz] = size(A1);
+%% F2 area solving
+% From P1 to P2
+A2x = double(linspace(P1(1),P2(1),Ndiv));
+A2 = double(pi.*(F2(A2x)).^2);
+[z,A2sz] = size(A2);
+%% F3 area solving
+% From P2 to P3
+A3x = double(linspace(P2(1),P3(1),Ndiv));
+A3 = double(pi.*(F3(A3x)).^2);
+[z,A3sz] = size(A3);
+%% F4 area solving
+% From P3 to P4
+A4x = double(linspace(P3(1),P4(1),Ndiv));
+A4 = double(pi.*(F4(A4x)).^2);
+[z,A4sz] = size(A4);
 
+%% F5 area solving
+% From P4 to P5
+A5x = double(linspace(P4(1),P5(1),Ndiv));
+A5 = double(pi.*(F5(A5x)).^2);
+[z,A5sz] = size(A5);
 
+%% F6 area solving
+% From P5 to P6
+A6x = double(linspace(P5(1),P6(1),Ndiv));
+A6 = double(pi.*(F6(A6x)).^2);
+[z,A6sz] = size(A6);
 
+tol = 1e-6;
+%% Area function stitching
+A = [A1, A2(2:A2sz), A3(2:A3sz), A4(2:A4sz), A5(2:A5sz), A6(2:A6sz)];
+[z, Asz] = size(A);
+Ax = [A1x, A2x(2:A2sz), A3x(2:A3sz), A4x(2:A4sz), A5x(2:A5sz), A6x(2:A6sz)];
+R1 = linspace(R(1),R(2),Ndiv);
+R2 = linspace(R(2),R(3),Ndiv*3-2);
+R3 = linspace(R(3),R(4),Ndiv*2-1);
+Rs = [R1,R2(2:Ndiv*3-2),R3(2:Ndiv*2-1)];
 
-% Conical nozzle plotting
-alpha = 15;
-Ln = (De-Dt)/(2*tand(alpha));
-Lnx = linspace(0,Ln,6);
-Lny = (De-Dt)./(2.*Ln).*Lnx+Dt/2;
-R1 = 1.5*Dt/2;
-b = 0.5*Dt + R1;
-a = 0;
-syms xf1f2
-f1f2FUNC = -xf1f2/sqrt(R1^2-xf1f2^2)+(Dt-Dc)/(2*Lcon);
-xf1f2sol = solve(f1f2FUNC);
-R1x = linspace(xf1f2sol, 0,12);
-R1y = -sqrt(R1^2-(abs(R1x)-a).^2)+b;
+ga1 = linspace(gamma(1),gamma(2),Ndiv);
+R1 = linspace(R(1),R(2),Ndiv);
+ga2 = linspace(gamma(2),gamma(3),Ndiv*3-2);
+R2 = linspace(R(2),R(3),Ndiv*3-2);
+ga3 = linspace(gamma(3),gamma(4),Ndiv*2-1);
+R3 = linspace(R(3),R(4),Ndiv*2-1);
+gammas = [ga1,ga2(2:Ndiv*3-2),ga3(2:Ndiv*2-1)];
+Rs = [R1,R2(2:Ndiv*3-2),R3(2:Ndiv*2-1)];
+Arats = A./At;
+% Isentropic solving
+strtsol = 1;
+P = zeros(1,Asz);
+%T = zeros(1,Asz);
+%a = zeros(1,Asz);
+%v = zeros(1,Asz);
+%V = zeros(1,Asz);
+Taw = Tcns*0.90;
+cstar = Pcns*At*g/Wdot;
+for i = 1:1:Asz
+% Solving for mach number
+gai = gammas(i);
+syms Msym;
+Func = ((gai+1)/2)^(-((gai+1)/(2*(gai-1))))*(1+(gai-1)/2*Msym^2)^((gai+1)/(2*(gai-1)))/Msym - Arats(i);
+%Func = ((gai+1)/2)^(-((gai+1)/2*(gai-1)))*(1+(gai-1)/2*Msym^2)^((gai+1)/(2*(gai-1)))/Msym - A(i)/At;
+if i >= 2
+strtsol = M(i-1);
+Mf = vpasolve(Func,Msym,strtsol);
+else
+Mf = 0.001;
+end
 
-Lcx = linspace(-Lct+xf1f2sol, -Lcon+xf1f2sol, 6);
-Lcy = linspace(Dc/2,Dc/2,6);
-P1conx = -Lcon+xf1f2sol;
-P1cony = Dc/2;
-P2conx = xf1f2sol;
-P2cony = R1y(1);
-Lconx = linspace(-Lcon+xf1f2sol, xf1f2sol, 6);
-mcon = (P2conx-P1conx)/(P2cony-P1cony);
-bcon = P1cony-P1conx*mcon;
-%Lcony = -(Lconx+.15)*(Dc/2-Dt/2)/Lcon+Dt/2;
-Lcony = mcon.*Lconx;
+if (Arats(i)-1)<tol
+    M(i) = 1;
+else
+M(i) = Mf;
+end
+P(i) = Pcns*(1+(gai-1)/2*M(i)^2)^(-gai/(gai-1));
+T(i) = Tcns*(1+(gai-1)/2*M(i)^2)^(-1);
+V(i) = Rs(i)*T(i)/144/P(i);
+v(i) = 144*V(i)*Wdot/A(i);
+Cp(i) = gai*Rs(i)/(gai-1);
+rhoprm(i) = (12)^3/V(i); % Finds density in terms of cubic inches.
+hgest(i) = (rhoprm(i)*v(i)*12)^(.8); % Gets estimaed gas-side heat transfer coefficient in Btu/in2-s-deg
+Pr(i) = 4*gai/(9*gai-5); % Approximation of prandtl number.
+sigma(i) = 1/(1/2*T(i)/Tcns*(1+(gai-1)/2*M(i)^2)^.68*(1+(gai-1)/2*M(i)^2)^.12);
+mu(i) = (46.6e-10)*M(i)^(0.5)*T(i)^(0.6); % Finds viscosity value.
+Hgbartz(i) = ((0.026/Dt^0.2)*(mu(i)^0.2*g/cstar)^0.8*(Dt/Rs(i))^0.1)*(At/A(i))^0.9*sigma(i);
+q(i) = Hgbartz(i)*(Taw-T(i));
+end
 
-centx = linspace(-Lct, Ln,6);
-centy = linspace(0, 0, 6);
-plot(centx,centy,'r--',Lcx, Lcy,'g',Lcx, -Lcy,'g',Lconx,Lcony,'g' ,Lconx, -Lcony,'g' ,Lnx, Lny,'g' ,Lnx, -Lny,'g',R1x,R1y);
-fprintf('Chamber length: %fin\nChamber diameter:%fin\n',Lc,Dc);
-fprintf('P1x: %d P1y: %d\nP2x: %d P2y:%d\n',P1conx,P1cony,double(P2conx),double(P2cony));
+Ffunc = @(M) ((gai+1)/2)^(-((gai+1)/(2*(gai-1))))*(1+(gai-1)/2*M^2)^((gai+1)/(2*(gai-1)))/M;
+%% Final plotting
+hFig2 = figure(2);
+set(hFig2, 'Position', [960 140 900 400]);
+plot(F1v(:,1),F1v(:,2),'r',F1v(:,1),-F1v(:,2),'r',F2v(:,1),F2v(:,2),'r',F2v(:,1),-F2v(:,2),'r',F3v(:,1),F3v(:,2),'r',F3v(:,1),-F3v(:,2),'r',F4v(:,1),F4v(:,2),'r',F4v(:,1),-F4v(:,2),'r',F5v(:,1),F5v(:,2),'r',F5v(:,1),-F5v(:,2),'r',F6v(:,1),F6v(:,2),'r',F6v(:,1),-F6v(:,2),'r');
+ylabel('Radial position (in)');
+xlabel('Longitudinal Position (in)');
+hold on;
+yyaxis right;
+ylabel('Mach number');
+plot(Ax,M);
+hold off;
+legend("Chamber","","","","","","","","Nozzle","","","","Chamber area");
+hFig3 = figure(3);
+set(hFig3, 'Position', [960 140 900 200]);
+plot(Ax,P);
+ylabel('Pressure (psia)');
+xlabel('Longitudinal Position (in)');
+hold on;
+yyaxis right;
+plot(Ax,T);
+ylabel('Temperature (R)');
+hold off;
+
+hFig4 = figure(4);
+set(hFig4, 'Position', [960 140 900 200]);
+plot(Ax,V);
+ylabel('Specific Volume (ft3/lbm)');
+xlabel('Longitudinal Position (in)');
+hold on;
+yyaxis right;
+plot(Ax,v);
+ylabel('velocity (ft/s)');
+hold off;
+figure(5);
+plot(Ax,hgest);
+xlabel('Longitudinal Position (in)');
+ylabel('hg estimated');
+hold on;
+yyaxis('Right');
+plot(Ax,q);
+ylabel('Heat transfer');
+hold off;

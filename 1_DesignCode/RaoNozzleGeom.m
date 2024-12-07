@@ -11,7 +11,7 @@
 %RaoNozzleGeom(Dc,Dt,De,Lcyl,R2,b,epsilon,Lengthfrac)
 
 % Constants to set
-function out = RaoNozzleGeom(Dc, Dt, De, Lcyl, R2, b, epsilon, Lengthfrac)
+function [F1,F2,F3,F4,F5,F6, P0,P1, P2, P3, P4, P5, P6, F1v, F2v, F3v, F4v, F5v, F6v] = RaoNozzleGeom(Dc, Dt, De, Lcyl, R2, b, epsilon, Lengthfrac)
 % Derived constants calculations
 Rc = Dc/2;            % Determines the radius of the chamber in inches.
 Rt = Dt/2;            % Determines the radius of the throat in inches.
@@ -48,6 +48,9 @@ elseif Lengthfrac == 90
 elseif Lengthfrac == 100
     thetan = Yn100(epsilon);            % throat to nozzle angle in degrees for an 80% nozzle.
     thetae = Ye100(epsilon);            % Nozzle exit angle in degrees for an 80% nozzle.
+else
+    fprintf("This nozzle percentage is out of range!\nExiting...\n");
+    quit cancel;
 end
 
 
@@ -71,8 +74,8 @@ P1y = Rc;
 P1 = [P1x P1y];
 % P6
 P6y = Re;
-P6x = Re/tand(thetae);
-P6 = [P6x P6y];
+%P6x = Re/tand(thetae);
+
 Lnc = (sqrt(epsilon)-1)*Rt/tand(15);
 
 
@@ -90,6 +93,8 @@ F2y = F2(F2x);
 
 % F1 plotting operation
 Lc = Lcyl + abs(P1x);
+P0(1) = -Lc;
+P0(2) = Rc;
 F1x = linspace(-Lc,P1x,granularity);
 F1y = linspace(Rc,Rc,granularity);
 F1 = @(x) Rc;
@@ -124,9 +129,16 @@ F6x = linspace(P5x,P6x,granularity);
 F6y = F6(F6x);
 Lt = abs(P1x) + P6x + Lcyl;
 P4 = [0, Rt];
+P6 = [P6x P6y];
 
 % Plotting
-figure(1);
-plot(F4x, F4y,'g' ,F4x, -F4y,'g',F3x,F3y,'g' ,F3x, -F3y,'g',F2x,F2y,'g',F2x,-F2y,'g',F1x,F1y,'g',F1x,-F1y,'g',F5x,F5y,'r',F5x,-F5y,'r',F6x,F6y,'r',F6x,-F6y,'r');
-out = [F1, F2, F3, F4, F5, F6, P1, P2, P3, P4, P5, P6];
+%figure(2);
+%plot(F4x, F4y,'g' ,F4x, -F4y,'g',F3x,F3y,'g' ,F3x, -F3y,'g',F2x,F2y,'g',F2x,-F2y,'g',F1x,F1y,'g',F1x,-F1y,'g',F5x,F5y,'r',F5x,-F5y,'r',F6x,F6y,'r',F6x,-F6y,'r');
+%title("Nozzle Geometry");
+%ylabel("Radial position (in)");
+%xlabel("Longitudinal position (in)");
+%legend("Chamber","","","","","","","","Nozzle");
+%axis equal;
+%out = [F1,F2,F3,F4,F5,F6, P1, P2, P3, P4, P5, P6];
+F1v = [F1x',F1y']; F2v = [F2x',F2y']; F3v = [F3x',F3y']; F4v = [F4x',F4y']; F5v = [F5x',F5y']; F6v = [F6x',F6y'];
 end
