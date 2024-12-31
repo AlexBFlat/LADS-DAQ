@@ -5,7 +5,8 @@ clear; close all; clc;
 Pcns = 420;          % Chamber stagnation pressure in psi.
 Tcns = 5802.507;     % Chamber temperature in R.
 OF = 1.5;            % Oxidizer to fuel ratio.
-F = 69;              % Thrust in lbs.
+%F = 70.02;              % Thrust in lbs.
+F = 69;
 
 % Design Parameters
 g = 32.2;            % Acceleration due to gravity in ft/s.
@@ -16,10 +17,11 @@ M = [22.2429 22.2432 22.4689 23.0151];
 R = 1544./M;        % Determines gas constant in imperial units.
 Mi = .0459;         % Nozzle inlet mach number.
 Pe = 14.7;          % Exit pressure in psia.
-epsilonc = 19;      % Chamber area ratio.
+epsilonc = 20;      % Chamber area ratio.
 Isp = 252.5994;     % Theoretical Isp in s.
-ts = 1.4706e-3;     % Dwell time, sets how long combustion has to complete in the nozzle.
-theta = 45;         % Sets converging nozzle in degrees.
+ts = 2.2883e-3;     % Dwell time, sets how long combustion has to complete in the nozzle.
+thetarl = 50;         % Sets converging nozz le in degrees.
+theta = 90-thetarl;
 R2 = 0.9480315;     % Sets nozzle to converging fillet radius in inches.
 Lengthfrac = 80;    % Sets length fraction of Rao nozzle. Use 60,70,80,90, or 100.
 Ndiv = 100;         % Sets number of divisions for the isentropic solver.
@@ -47,19 +49,19 @@ Dt = 2*sqrt(At/pi); % Finds throat diameter in inches.
 De = 2*sqrt(Ae/pi); % Finds exit diameter in inches.
 
 % Epsilon versus length plotting
-figure(1);              % Creates figure.
-plot(epsiloncG, Lcvals); % Plots epsilon versus length.
-title('Chamber length versus chamber area ratio'); 
-xlabel('Chamber area ratio');
-ylabel('Chamber length (in)');
+figure(1);                                         % Creates figure.
+plot(epsiloncG, Lcvals);                           % Plots epsilon versus length.
+title('Chamber length versus chamber area ratio'); % Graph title
+xlabel('Chamber area ratio');                      % Sets axis labels.
+ylabel('Chamber length (in)');                     %
 % Chamber plotting
 [F1,F2,F3,F4,F5,F6,P0,P1, P2, P3, P4, P5, P6, F1v, F2v, F3v, F4v, F5v, F6v] = RaoNozzleGeom(Dc,Dt,De,Lcyl,R2,theta,epsilon,Lengthfrac); % Finds nozzle geometry functions and values and plots them.
-z = 0;
+z = 0; % Storage variable.
 %% Isentropic flow solving
 % Nozzle area solving
 Lco = P6(1) + abs(P0(1)); % Finds the total chamber length in inches.
-Leo = P6(1);             % Finds the total nozzle length in inches.
-L = Lco + Leo;         % Finds total length of chamber in inches.
+Leo = P6(1);              % Finds the total nozzle length in inches.
+L = Lco + Leo;            % Finds total length of chamber in inches.
 %% F1 area solving
 % From P0 to P1
 A1x = double(linspace(P0(1),P1(1),Ndiv));
@@ -102,7 +104,6 @@ R1 = linspace(R(1),R(2),Ndiv);
 R2 = linspace(R(2),R(3),Ndiv*3-2);
 R3 = linspace(R(3),R(4),Ndiv*2-1);
 Rs = [R1,R2(2:Ndiv*3-2),R3(2:Ndiv*2-1)];
-
 ga1 = linspace(gamma(1),gamma(2),Ndiv);
 R1 = linspace(R(1),R(2),Ndiv);
 ga2 = linspace(gamma(2),gamma(3),Ndiv*3-2);
@@ -143,14 +144,27 @@ P(i) = Pcns*(1+(gai-1)/2*M(i)^2)^(-gai/(gai-1));
 T(i) = Tcns*(1+(gai-1)/2*M(i)^2)^(-1);
 V(i) = Rs(i)*T(i)/144/P(i);
 v(i) = 144*V(i)*Wdot/A(i);
-Cp(i) = gai*Rs(i)/(gai-1);
-rhoprm(i) = (12)^3/V(i); % Finds density in terms of cubic inches.
-hgest(i) = (rhoprm(i)*v(i)*12)^(.8); % Gets estimaed gas-side heat transfer coefficient in Btu/in2-s-deg
-Pr(i) = 4*gai/(9*gai-5); % Approximation of prandtl number.
-sigma(i) = 1/(1/2*T(i)/Tcns*(1+(gai-1)/2*M(i)^2)^.68*(1+(gai-1)/2*M(i)^2)^.12);
-mu(i) = (46.6e-10)*M(i)^(0.5)*T(i)^(0.6); % Finds viscosity value.
-Hgbartz(i) = ((0.026/Dt^0.2)*(mu(i)^0.2*g/cstar)^0.8*(Dt/Rs(i))^0.1)*(At/A(i))^0.9*sigma(i);
-q(i) = Hgbartz(i)*(Taw-T(i));
+% Finding locations
+if (A(i)-At)<tol
+    it = i;
+    xt = Ax(i);
+end
+if abs(A(i)-Ac)<.01
+    ic = i;
+    xc = Ax(i);
+end
+if (A(i)-Ae)<tol
+    ie = i;
+    xe = Ax(i);
+end
+%Cp(i) = gai*Rs(i)/(gai-1);
+%rhoprm(i) = (12)^3/V(i); % Finds density in terms of cubic inches.
+%hgest(i) = (rhoprm(i)*v(i)*12)^(.8); % Gets estimaed gas-side heat transfer coefficient in Btu/in2-s-deg
+%Pr(i) = 4*gai/(9*gai-5); % Approximation of prandtl number.
+%sigma(i) = 1/(1/2*T(i)/Tcns*(1+(gai-1)/2*M(i)^2)^.68*(1+(gai-1)/2*M(i)^2)^.12);
+%mu(i) = (46.6e-10)*M(i)^(0.5)*T(i)^(0.6); % Finds viscosity value.
+%Hgbartz(i) = ((0.026/Dt^0.2)*(mu(i)^0.2*g/cstar)^0.8*(Dt/Rs(i))^0.1)*(At/A(i))^0.9*sigma(i);
+%q(i) = Hgbartz(i)*(Taw-T(i));
 end
 
 Ffunc = @(M) ((gai+1)/2)^(-((gai+1)/(2*(gai-1))))*(1+(gai-1)/2*M^2)^((gai+1)/(2*(gai-1)))/M;
@@ -163,7 +177,7 @@ xlabel('Longitudinal Position (in)');
 hold on;
 yyaxis right;
 ylabel('Mach number');
-plot(Ax,M);
+plot(Ax,A);
 hold off;
 legend("Chamber","","","","","","","","Nozzle","","","","Chamber area");
 hFig3 = figure(3);
@@ -177,22 +191,49 @@ plot(Ax,T);
 ylabel('Temperature (R)');
 hold off;
 
-hFig4 = figure(4);
-set(hFig4, 'Position', [960 140 900 200]);
-plot(Ax,V);
-ylabel('Specific Volume (ft3/lbm)');
-xlabel('Longitudinal Position (in)');
-hold on;
-yyaxis right;
-plot(Ax,v);
-ylabel('velocity (ft/s)');
-hold off;
-figure(5);
-plot(Ax,hgest);
-xlabel('Longitudinal Position (in)');
-ylabel('hg estimated');
-hold on;
-yyaxis('Right');
-plot(Ax,q);
-ylabel('Heat transfer');
-hold off;
+
+%% Accuracy checks
+% Chamber conditions
+Pcer = abs((Pcns - P(ic))/Pcns*100);
+Tcer = abs((Tcns - T(ic))/Tcns*100);
+Vcer = abs((Vinj - V(ic))/Vinj*100);
+% Throat conditions
+Pter = abs((Pt - P(it))/Pt*100);
+Tter = abs((Tt - T(it))/Tt*100);
+Vter = abs((Vt - V(it))/Vt*100);
+% Exit conditions
+Peer = abs((Pe - P(ie))/Pe*100);
+Teer = abs((Te - T(ie))/Te*100);
+Veer = abs((Ve - V(ie))/Ve*100);
+Isprl = (v(i)/g);
+Isper = abs((Isprl-Isp)/Isp*100);
+Frl = Wdot*v(i)/g+A(i)*(P(i)-Pe);
+Fer = abs((Frl-F)/F*100);
+
+% Result printing
+fprintf('Solver Errors\n');
+fprintf('Pc: %f%% Pt: %f%% Pe: %f%%\n',Pcer,Pter,Peer);
+fprintf('Tc: %f%% Tt: %f%% Te: %f%%\n',Tcer,Tter,Teer);
+fprintf('Vc: %f%% Vt: %f%% Ve: %f%%\n',Vcer,Vter,Veer);
+fprintf('F: %f%% Isp: %f%%\n',Fer,Isper);
+fprintf('Frl: %.2flbf Isprl: %f.2s\n',Frl,Isprl);
+
+%hFig4 = figure(4);
+%set(hFig4, 'Position', [960 140 900 200]);
+%plot(Ax,V);
+%ylabel('Specific Volume (ft3/lbm)');
+%xlabel('Longitudinal Position (in)');
+%hold on;
+%yyaxis right;
+%plot(Ax,v);
+%ylabel('velocity (ft/s)');
+%hold off;
+%figure(5);
+%plot(Ax,hgest);
+%xlabel('Longitudinal Position (in)');
+%ylabel('hg estimated');
+%hold on;
+%yyaxis('Right');
+%plot(Ax,q);
+%ylabel('Heat transfer');
+%hold off;
