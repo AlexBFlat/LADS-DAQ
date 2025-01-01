@@ -9,3 +9,6 @@ fprintf(['/////////////////////////////////////\n' ...
 %% || Input values //
 %  ||///////////////
 %  Design input values
+py = pyenv(Version="C:\Users\Alex\Desktop\LADS-GIT-Repos\mainenv\Scripts\python.exe");
+
+r134aTables = twoPhaseFluidTables([80,500],[0.001,3],25,25,60,'R134a','py.CoolProp.CoolProp.PropsSI');
