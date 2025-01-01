@@ -25,7 +25,8 @@ Cpeth = 0.520;       % Ethanol specific heat in btu/lbF.
 mueth(1) = 0.00000736;  % Viscosity of ethanol in lb/ins.
 muweth(1) = .00000736;  
 %rhoethI = 62.428*rhoeth/(12^3); % Finds density in lbm/in3.
-keth = 0.0999;           % Ethanol conductivity, BTU-in/hr-ft2-F
+Kethm = .17;             % Conductivity of ethanol in W/mK
+keth = Kethm/.0000133755;           % Ethanol conductivity, BTU-in/hr-ft2-F
 
 
 
@@ -50,9 +51,9 @@ Lengthfrac = 80;    % Sets length fraction of Rao nozzle. Use 60,70,80,90, or 10
 Ndiv = 100;         % Sets number of divisions for the isentropic solver.
 Cp = R/(1-1/gamma); % Specific heat, pressure held constant.
 Nc = 20;            % Number of channels.
-tcw = .05;          % Inter-channel width in inches.
-tc = .05;           % Chamber wall thickness in inches. 
-wc = 0.15748;           % Sets height of channels.
+tcw = .04;          % Inter-channel width in inches.
+tc = .04;           % Chamber wall thickness in inches. 
+wc = 0.04;           % Sets height of channels.
 Kmet = 16.2;       % Thermal conductivity in w/mK
 K = Kmet/74763.8199;% Finds thermal conductivity in Btu/F/in/s.
 
@@ -176,62 +177,12 @@ Dx(i) = abs(sqrt(4*A(i)/pi));
 rhox(i) = g/Vx(i);
 % Heat transfer
 mux(i) = (46.6e-10)*M^.5*Tx(i)^.6;
-Re(i) = rhox(i)*vx(i)*Dx(i)/mux(i);
+Re(i) = rhox(i)*vx(i)*Dx(i)/12/(mux(i)*12);
 if Re>4000
     r(i) = Pr^.35;
 else
     r(i) = Pr^.5;
 end
-%sigma(i) = 1/((1/2*Twg(i)/Tcns*(1+(gamma-1)/2*Mx(i)^2))^.68*(1+(gamma-1)/2*Mx(i))^.12);
-%hg(i) = (.026/(Dt^.2)*(mux(i)^.2*Cp/(Pr^.6))*(Pcns*g/(cstar))^.8*(Dt/R)^.1)*(At/A(i))^.9*sigma(i)/12;
-%% Channel initial solving
-%mueth(i) = mueth(1)*(Tco(i)/Tco(1))^1.5*((Tco(1)+198.72)/(Tco(i)+198.72)); % FIX LATER FOR GAS NOT LIQUID
-%muweth(i) = muweth(1)*(Twc(i)/Twc(1))^1.5*((Twc(1)+198.72)/(Twc(i)+198.72)); % FIX LATER FOR GAS NOT LIQUID
-%Preth(i) = mueth(i)*Cpeth/keth; % Prandtl number for cooling channels.
-%thetacd(i) = 360/Nc - 2*asind(tc/(2*Ay(i))); % Finds the angle that defines the portion taken up by each channel at each point in degrees.
-%thetacd(i) = 360/Nc - asind(tc/(Ay(i)));
-%Ach(i) = pi*thetacd(i)/360*(2*Ay(i)*hc+hc^2); % Finds the area of each channel.
-%vchan(i) = 144*Wdotchan*Veth/Ach(i);              % Finds the velocity, in ft/s, of the flow at each point in the cooling channels.
-%Pch(i) = 2*tc+2*pi*thetacd(i)/360*(2*Ay(i)+tc); % Finds channel perimeter in inches at each point.
-%dhc(i) = 4*Pch(i)/Ach(i);                         % Finds hydraulic diameter in inches at each point.
-%dhc(i) = hc;
-%Rech(i) = rhoethI*vchan(i)*dhc(i)/mueth(i);        % Finds reynolds number.
-%Gc(i) = Wdotchan/Ach(i);                        % Finds weight flowrate per unit area of a channel.
-
-%% Function creation
-
-%hcf = .029*Cpeth*mueth(i)^.2/(Preth(i)^(2/3))*(Gc(i)^.8/(dhc(i)^.2))*(Tco(i)/Twcs);
-%Rechan(i) = rhoethI*vchan(i)*dhc(i)/mueth(i);
-%Nuc(i) = .027*Rechan^.8*Preth(i)^.4*(mueth(i)/muweth(i))
-%hcf(i) = Nuc(i)*keth/dhc(i);
-%sigmaf = 1/((1/2*(Twgs/Tcns*(1+(gamma-1)/2*Mx(i)))+1/2)^.68*(1+(gamma-1)/2*Mx(i)^2)^.12);
-%qf1 = hcf*(Twcs - Tco(i)) - qs;
-%hgf = (0.026/(Dt^.2)*((mueth(i)^.2*Cpeth/(Preth(i)^.6)))*((Pcns*g)/cstar)^.8*(Dt/R1)^.3)*(At/A(i))^.9*sigmaf;
-%qf2 = hgf*(Taw(i) - Twgs) - qs;
-%qf3 = K/tc*(Twgs-Twcs) - qs;
-%if i <= 2
-%    [Twg(i), Twc(i), q(i)] = vpasolve([qf1,qf2,qf3],[Twgs,Twcs,qs],[Taw(1),Tco(1),0]);
-%end
-%if i <= it && i > 2
-%    [Twg(i), Twc(i), q(i)] = vpasolve([qf1,qf2,qf3],[Twgs,Twcs,qs],[Twg(i-1),Twc(i-1),0]);
-%end
-%if i > it
-%    [Twg(i), Twc(i), q(i)] = vpasolve([qf1,qf2,qf3],[Twgs,Twcs,qs],[Twg(i-1),Twc(i-1),q(i-1)]);
-%end
-%if i < Asz-1
-%dx(i) = abs(Ax(i)-Ax(i+1));
-%dy(i) = abs(Ay(i)-Ay(i+1));
-%SAch(i) = pi*sqrt(dy(i)^2+dx(i)^2)*(Ay(i)+Ay(i+1))*thetacd(i)/360;
-%else
-%    dx(i) = dx(i-1);
-%    dy(i) = dy(i-1);
-%    SAch(i) = SAch(i-1);
-%end
-%Tco(i+1) = q(i)*SAch(i)*g/Wdot/Cpeth + Tco(i);
-%Tco(i+1) = Tco(1);
-%Tco(i+1) = Tco(i) + 1;
-%clc;
-%fprintf('Iteration: %i Heat transfer: %fBTU/in2s Coolant bulk temp: %fR gas-wall temp: %fR\nCoolant wall temp: %fR Gas temp: %fR Area: %fin2',i,q(i),Tco(i),Twg(i),Twc(i),Tx(i),SAch(i));
 end
 
 figure(2);
@@ -271,9 +222,12 @@ xlabel('Longitudinal Position (in)');
 Aet = .00201; Bet = 1614; Cet = .00618; Det = -1.132E-5;
 
 Aflip = fliplr(A);
+Axflip = fliplr(Ax);
 Ayflip = fliplr(Ay);
 Mxflip = fliplr(Mx);
 rflip = fliplr(r);
+muxflip = fliplr(mux);
+Txflip = fliplr(Tx);
 
 %% Channel solving
 fprintf('Staring area solving...\n');
@@ -314,19 +268,28 @@ thetach(i) = thetac(i) - 2*thetacw(i);
 Ach(i) = thetach(i)/360*pi*((Rx+tc+wc)^2-(Rx+tc)^2)+wc^2*sind(thetacw(i));
 Pch(i) = 4*pi*thetach(i)/360*(2*Ayflip(i)+2*tc+wc)+2*wc; % Finds perimeter of channel segment in inches.
 dhc(i) = 4*Pch(i)/Ach(i);
-
+if i < Asz
+    dx = abs(Axflip(i) - Axflip(i+1));
+    dy = abs(Ayflip(i) - Ayflip(i+1));
+    %SAch(i) = 2*pi*Ayflip(i)*sqrt(dx^2+dy^2)*thetach(i)/360;
+    SAch(i) = 2*pi*Ayflip(i)*sqrt(dx^2+dy^2)*thetac(i)/360;
+else
+    SAch(i) = SAch(i-1);
+end
 
 % Flow conditions solving
 Taw(i) = Tcns*((1+rflip(i)*((gamma-1)/2)*Mxflip(i)^2))/(1+(gamma-1)/2*Mxflip(i)^2);
+%Taw(i) = Tcns*.90;
 Pch(i) = 420;
-sigma = 1/((1/2*Twgs/Tcns*(1+(gamma-1)/2*Mx(i)^2))^.68*(1+(gamma-1)/2*Mx(i))^.12);
-hg = (.026/(Dt^.2)*(mux(i)^.2*Cp/(Pr^.6))*(Pcns*g/(cstar))^.8*(Dt/R)^.1)*(At/Aflip(i))^.9*sigma/12;
+sigma = 1/(((1/2*Twgs/Tcns*(1+(gamma-1)/2*Mxflip(i)^2)+1/2)^.68*(1+(gamma-1)/2*Mxflip(i))^.12));
+hg = (.026/(Dt^.2)*(muxflip(i)^.2*Cp/(Pr^.6))*(Pcns*g/(cstar*12))^.8*(Dt/R1)^.1)*(At/Aflip(i))^.9*sigma/12;
 Tcom(i) = Tco(i)*5/9; Twcms = Twcs*5/9;
 muco(i) = Aet*exp(Bet/Tcom(i)+Cet*Tcom(i)+Det*Tcom(i)^2)*0.055997410*10e-3; % Finds ethanol viscosity in lb/ins
-muwc = Aet*exp(Bet/Twcms+Cet*Twcms+Det*Twcms^2)*0.055997410*10e-3; % Finds ethanol viscosity in lb/ins
+muwc = Aet*exp(Bet/Twcms+Cet*Twcms+Det*Twcms^2)*0.055997410e-3; % Finds ethanol viscosity in lb/ins
 Preth(i) = muco(i)*Cpeth/keth; % Prandtl number for cooling channels.
-rhoeth(i) = Pch(i)*(mm*Tco(i)+bm)+mb*Tco(i)+bb; % Finds ethanol density in lb/ft3.
-vchan(i) = Wdotchan/(rhoeth(i)/(12^3)*Ach(i)*g)*12; % Finds channel velocity in ft/s.
+%rhoeth(i) = Pch(i)*(mm*Tco(i)+bm)+mb*Tco(i)+bb; % Finds ethanol density in lb/ft3.
+rhoeth(i) = 49.3;
+vchan(i) = Wdotchan/(rhoeth(i)*Ach(i)*g)*144; % Finds channel velocity in ft/s.
 Rechan(i) = rhoeth(i)*vchan(i)*dhc(i);              % Finds the reynolds number within the channels.
 Nuchan = .027*Rechan(i)^.8*Preth(i)^.40*(muco(i)/muwc)^.14;         % Finds nusselt number.
 hc = keth*Nuchan/dhc(i);                      % Finds hot-gas side heat transfer coefficient.
@@ -334,15 +297,21 @@ f1 = hg*(Taw(i)-Twgs) - qs;
 f2 = K/tc*(Twgs-Twcs) - qs;
 f3 = hc*(Twcs-Tco(i)) - qs;
 if i <= 2
-[Twg(i),Twc(i),q(i)] = vpasolve(f1,f2,f3,[Twgs,Twcs,qs]);
+[Twg(i),Twc(i),q(i)] = vpasolve([f1,f2,f3],[Twgs,Twcs,qs]);
 else
-[Twg(i),Twc(i),q(i)] = vpasolve([f1,f2,f3],[Twgs,Twcs,qs],[Twg(i-1),Twc(i-1),q(i-1)]);
+[Twg(i),Twc(i),q(i)] = vpasolve([f1,f2,f3],[Twgs,Twcs,qs],[Twg(i-1),Twc(i-1),0]);
 end
-%Tco(i+1) = q(i)*SAch(i)*g/Wdot/Cpeth + Tco(i);
-Tco(i+1) = Tco(i);
+Tco(i+1) = q(i)*SAch(i)*g/12/Wdot/Cpeth + Tco(i);
+%Tco(i+1) = Tco(i);
 clc;
-fprintf('iteration: %d Taw: %f Visc: %f lb/in-s Channel angle: %fdeg Chan wall angle: %fdeg Area: %fin^2',i,Taw(i),muco(i),thetac(i),thetacw(i),Ach(i));
+fprintf('Location: %fin Taw: %fR Twg: %fR Twc: %fR Tco: %fR',Axflip(i),Taw(i),Twg(i),Twc(i),Tco(i));
 end
+
+Twg = fliplr(Twg);
+Twc = fliplr(Twc);
+Taw = fliplr(Taw);
+Tco = fliplr(Tco(1:Asz));
+q = fliplr(q);
 
 fprintf('\n')
 
@@ -401,13 +370,24 @@ plot(Ax,fliplr(Rechan));
 ylabel('Reynolds number');
 hold off;
 
-figure(11);
-plot(Ax,fliplr(Nuchan));
-title('Channel flow characteristics II');
-xlabel('Longitudinal Position (in)');
-ylabel('Nusselt number');
+%figure(11);
+%plot(Ax,fliplr(Nuchan));
+%title('Channel flow characteristics II');
+%xlabel('Longitudinal Position (in)');
+%ylabel('Nusselt number');
+%hold on;
+%yyaxis right;
+%plot(Ax,fliplr(SAch));
+%ylabel('Channel surface area (in2)');
+%hold off;
+
+figure(12);
+plot(Ax,Tco,Ax,Twc,Ax,Taw,Ax,Twg);
+xlabel('Longitudinal position (in)');
+ylabel('Temperature (R)');
 hold on;
 yyaxis right;
-plot(Ax,fliplr(hc));
-ylabel('hot gas side heat transfer coeff (btu/in2-s-F)');
+plot(Ax,q);
+ylabel('Heat transfer (Btu/lbins)');
 hold off;
+legend ('Coolant bulk','Coolant wall','Adiabatic wall','Gas wall','')
