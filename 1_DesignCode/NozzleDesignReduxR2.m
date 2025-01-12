@@ -53,6 +53,7 @@ Lstar = 63.27;   % Sets L star in inches, the characteristic nozzle length for e
 Keth = .17;      % Thermal conductivity of ethanol in W/mK.
 Kss = 15;        % Thermal conductivity of stainless steel in W/mk.
 rhoeth = 789;    % Density of ethanol in kg/m3.
+Cpeth = 2.57e3;  % Specific heat of ethanol in J/kgK.
 
 % Value printing
 fprintf(['|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n' ...
@@ -117,6 +118,8 @@ AA = fliplr(A);         % Creates a reversed array of the area throughout the ch
 AAx = fliplr(Ax);       % Creates a flipped longitudinal position array.
 AAy = fliplr(Ay);       % Creates a flipped radius array.
 MMx = fliplr(Mx);       % Finds flipped mach number.
+TTx = fliplr(Tx);       % Finds flipped gas temp.
+vvx = fliplr(vx);       % Finds flipped gas velocity.
 thetac = 360/Nc;  % initializes a theta storage array.
 thetacw = zeros(1,Asz); % Initializes wall half-angle array.
 thetach = zeros(1,Asz); % Initializes cooled segment angle array.
@@ -127,8 +130,12 @@ vc = zeros(1,Asz);      % Initializes channel velocity array.
 Rec = zeros(1,Asz);     % Initializes channel velocity array.
 Tco = zeros(1,Asz);     % Initializes channel velocity array.
 Taw = zeros(1,Asz);     % Initializes adiabatic wall temp array. 
+mug = zeros(1,Asz);     % Initializes gas viscosity array.
+Reg = zeros(1,Asz);     % Initializes gas reynolds number.
+Prc = zeros(1,Asz);     % Initializes fluid prandtl number.
 muc = @(T) Au*exp(Bu/T+Cu*T+Du*T^2); % Function for ethanol viscosity in Pa-s.
-syms Twg Twc
+Prg = 4*gamma/(9*gamma-5);
+syms Twgs Twcs qs;
 Tco(1) = 273.15;
 for i = 1:1:Asz
 % Area solving
@@ -138,14 +145,22 @@ for i = 1:1:Asz
     Pch(i) = 4*pi*thetach(i)/360*(2*AAy(i)+2*tc+wc)+2*wc;                                % Finds channel perimeter in m.
     dch(i) = 4*Ach(i)/Pch(i);                                                            % Finds hydraulic diamter in m.
 % Chamber gas solving
-    
+    mug(i) = 46.6*10^(-10)*9/5*TTx(i)^.6*M^.5*39.3701/2.205;                      % Finds viscosity in kg/m-s.
+    Reg(i) = rhox(i)*vvx(i)*AAy(i)/mug(i);                                          % Finds Reynolds number for gas.
+    if Reg(i)>4000                                                                  % Checks if flow is turbulent or laminar.
+        r = Prg^.35;                                                                % If flow is turbulent, finds recovery factor.
+    else
+        r = Prg^.5;                                                                 % If flow is laminar, finds recovery factor.
+    end
     Taw(i) = Tcns*((1+r*((gamma-1)/2)*MMx(i)^2))/(1+(gamma-1)/2*MMx(i)^2); 
 % Channel flow conditions
     vc(i) = mdotc/(rhoeth*Ach(i)); % Finds channel velocity in m/s.
-    Tco(i) = 273.15;
-    Rec(i) = rhoeth*vc(i)*dch(i)/muc(Tco(i));
-    %Prc(i) = 
-    %Nuc = @(mu,muw) .027*Rec(i)^.8*Prc
+    Tco(i) = 273.15;                                        % Coolant bulk temperature in K.
+    Rec(i) = rhoeth*vc(i)*dch(i)/muc(Tco(i));               % Reynolds number in cooling channel.
+    Prc(i) = muc(Tco(i))*Cpeth/Keth;                        % Prandtl number in cooling channel.
+    Nuc =  .027*Rec(i)^.8*Prc(i)^.4*(muc(Tco(i))/muc(Twcs)); % Finds nusselt number. Symbolic.
+    hc = Keth*Nuc/dch(i);                                   % Coolant side HTC.
+    sigma = 1/((1/2*Twgs/Tcns*(1+(gamma+1)/2*MMx(i)^2)+1/2)^.68*(1+(gamma-1)/2*MMx(i)^2));
 end
 thetach = fliplr(thetac);
 Ach = fliplr(Ach);
@@ -153,6 +168,7 @@ dch = fliplr(dch);
 Pch = fliplr(Pch);
 vc = fliplr(vc);
 Rec = fliplr(Rec);
+Taw = fliplr(Taw);
 
 %  ||//////////////
 %% || Plotting  //
@@ -192,7 +208,7 @@ ylabel('Hydraulic diameter (m)');
 hold off;
 
 figure(4);
-plot(Ax,vc);
+plot(Ax,vc,Ax,Prc);
 title('Channel flow characteristics');
 xlabel('Longitudinal position (m)');
 ylabel('channel velocity (m/s)');
@@ -200,4 +216,16 @@ hold on;
 yyaxis right;
 plot(Ax,Rec);
 ylabel('Coolant reynolds number');
+hold off;
+legend('Channel velocity','Channel Reynolds number','Channel Prandtl number');
+
+figure(5);
+plot(Ax,Tx);
+title('Combustion gas properties');
+xlabel('Longitudinal position (m)');
+ylabel('Gas temperature (K)');
+hold on;
+yyaxis right;
+plot(Ax,Taw);
+ylabel('Adiabatic wall temp (K)');
 hold off;
