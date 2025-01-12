@@ -10,6 +10,9 @@ fprintf(['/////////////////////////////////////\n' ...
          'Version: 0.01 Updated: 1/4/2025 ///\n' ...
          '//////////////////////////////////\n'])
 
+%  ||/////////////////////////////////////////
+%% || O/F Isp and Tc corellation constants //
+%  ||///////////////////////////////////////
 
 %  ||/////////////////
 %% || Input values //
@@ -17,8 +20,9 @@ fprintf(['/////////////////////////////////////\n' ...
 %  Design input values
 % Engine performance
 F = 69;          % Thrust in lb.
-Isp = 261;  % Isp in seconds.
-of = 1.596;      % Oxidizer to fuel ratio.
+%Isp = 261;  % Isp in seconds.
+of = 1.1;      % Oxidizer to fuel ratio.
+[Tcns, Isp] = OFcor(of);
 epsilonc = 22.5;
 %epsilonc = 22.5; % Chamber area ratio.
 thetacon = 50;   % converging section angle in degrees.
@@ -27,7 +31,8 @@ Pc = 420;        % Chamber pressure in psia.
 Pe = 14.7;       % Exit pressure in psia.
 % Engine temperatures
 Tco(1) = 273.15; % Initial coolant bulk temperature in K.
-Tcns = 5802.507; % Chamber temperature in R.
+%Tcns = 5802.507; % Chamber temperature in R.
+
 % Engine mach numbers
 Mi = .0459;      % Sets nozzle inlet mach number.
 % Geometric constants
@@ -47,6 +52,7 @@ R = Ro/M;        % Gas constant in J/kgK.
 Lstar = 63.27;   % Sets L star in inches, the characteristic nozzle length for ethanol.
 Keth = .17;      % Thermal conductivity of ethanol in W/mK.
 Kss = 15;        % Thermal conductivity of stainless steel in W/mk.
+rhoeth = 789;    % Density of ethanol in kg/m3.
 
 % Value printing
 fprintf(['|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n' ...
@@ -101,11 +107,55 @@ Lcyl = real(vpasolve(func));                                                   %
 
 [Px,Tx,rhox,ax,vx,Vx,Dx,Mx] = IsenSolve(A,Ax,gamma,R,Pcns,Tcns,Pt,rhocns,At,mdot); % Solves isentropically for gas properties within the flow throughout the nozzle.
 
+%  ||//////////////////////////
+%% || Heat transfer         //
+%  ||////////////////////////
+Au = .00201e-3; Bu = 1614; Cu = .00618; Du = -1.132e-5;
+mdotc = mdot/(1+of)/Nc; % Finds channel flowrate in kg/s.
+[z,Asz] = size(A);      % Grabs the size of the chamber areas array.
+AA = fliplr(A);         % Creates a reversed array of the area throughout the chamber.
+AAx = fliplr(Ax);       % Creates a flipped longitudinal position array.
+AAy = fliplr(Ay);       % Creates a flipped radius array.
+thetac = 360/Nc;  % initializes a theta storage array.
+thetacw = zeros(1,Asz); % Initializes wall half-angle array.
+thetach = zeros(1,Asz); % Initializes cooled segment angle array.
+Ach = zeros(1,Asz);     % Initializes channel area array.
+Pch = zeros(1,Asz);     % Initializes channel perimeter array.
+dch = zeros(1,Asz);     % Initializes hydraulic diameter array.
+vc = zeros(1,Asz);      % Initializes channel velocity array.
+Rec = zeros(1,Asz);      % Initializes channel velocity array.
+Tco = zeros(1,Asz);      % Initializes channel velocity array.
+muc = @(T) Au*exp(Bu/T+Cu*T+Du*T^2); % Function for ethanol viscosity in Pa-s.
+syms Twg Twc
+Tco(1) = 273.15;
+for i = 1:1:Asz
+% Area solving
+    thetacw(i) = 2*asind(tcw/(4*(AAy(i)+tc))); % Finds channel half-angle in degrees.
+    thetach(i) = thetac - 2*thetacw(i);        % Finds cooled segment half angle in degrees.
+    Ach(i) = thetach(i)/360*pi*((AAy(i)+tc+wc)^2-(AAy(i)+tc)^2) + wc^2*sind(thetacw(i)); % Finds channel area in m2.
+    Pch(i) = 4*pi*thetach(i)/360*(2*AAy(i)+2*tc+wc)+2*wc;                                % Finds channel perimeter in m.
+    dch(i) = 4*Ach(i)/Pch(i);                                                            % Finds hydraulic diamter in m.
+% Chamber gas solving
+    %Taw(i) = 
+% Channel flow conditions
+    vc(i) = mdotc/(rhoeth*Ach(i)); % Finds channel velocity in m/s.
+    Tco(i) = 273.15;
+    Rec(i) = rhoeth*vc(i)*dch(i)/muc(Tco(i));
+    Prc(i) = 
+    %Nuc = @(mu,muw) .027*Rec(i)^.8*Prc
+end
+thetach = fliplr(thetac);
+Ach = fliplr(Ach);
+dch = fliplr(dch);
+Pch = fliplr(Pch);
+vc = fliplr(vc);
+Rec = fliplr(Rec);
+
 %  ||//////////////
 %% || Plotting  //
 %  ||////////////
 
-figure(3);
+figure(1);
 plot(Ax,Px);
 title('Flow properties');
 xlabel('Longitudinal position (m)');
@@ -116,7 +166,7 @@ plot(Ax,Tx);
 ylabel('Temperature (K)');
 hold off;
 
-figure(4);
+figure(2);
 plot(Ax,Mx);
 title('Flow momentum properties');
 xlabel('Longitudinal position (m)');
@@ -125,4 +175,26 @@ hold on;
 yyaxis right;
 plot(Ax,vx);
 ylabel('Velocity (m/s)');
+hold off;
+
+figure(3);
+plot(Ax,Ach);
+title('Channel geometry properties');
+xlabel('Longitudinal position (m)');
+ylabel('Channel area (m2)');
+hold on;
+yyaxis right;
+plot(Ax,dch);
+ylabel('Hydraulic diameter (m)');
+hold off;
+
+figure(4);
+plot(Ax,vc);
+title('Channel flow characteristics');
+xlabel('Longitudinal position (m)');
+ylabel('channel velocity (m/s)');
+hold on;
+yyaxis right;
+plot(Ax,Rec);
+ylabel('Coolant reynolds number');
 hold off;

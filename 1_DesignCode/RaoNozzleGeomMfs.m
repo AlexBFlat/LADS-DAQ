@@ -12,6 +12,7 @@
 
 % Constants to set
 function [F1,F2,F3,F4,F5,F6, P0,P1, P2, P3, P4, P5, P6, F1v, F2v, F3v, F4v, F5v, F6v,R1] = RaoNozzleGeomMfs(Dc, Dt, De, Lcyl, R2rat, b, epsilon, Lengthfrac)
+options = optimset('Display','off');
 % Conversion factors
 lb2N = 4.448;  % Conversion factor lbf to N.
 Psi2Pa = 6895; % Conversion factor psia to Pa.
@@ -67,7 +68,7 @@ F4 = @(x) R1+Rt-sqrt(R1.^2-x.^2); % Defines function four, the join between the 
 % Joining points definitions
 % P3
 P3xf = @(x3s) -tand(b) + x3s/sqrt(R1^2-x3s^2); % Creates a function to find the x coordinate of P3.
-P3x = -fsolve(P3xf,0);              % Sounds for the x coordinate of P3.
+P3x = -fsolve(P3xf,0,options);              % Sounds for the x coordinate of P3.
 P3y = F4(P3x);                         % Finds the y coordinate of P3.
 P3 = [P3x, P3y];                       % Defines point 3.
 % P2
@@ -112,7 +113,7 @@ F4y = F4(F4x);            % Finds y values for function 4.
 % F5 plotting preparations
 F5 = @(x) Rn + Rt - sqrt(Rn^2-x.^2);
 F5f = @(x5) -x5/sqrt(Rn^2-x5^2)-tand(thetan);
-P5x = abs(fsolve(F5f,0));
+P5x = abs(fsolve(F5f,0,options));
 P5y = F5(P5x);
 F5x = linspace(0,P5x,granularity);
 F5y = F5(F5x);
