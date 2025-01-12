@@ -116,6 +116,7 @@ mdotc = mdot/(1+of)/Nc; % Finds channel flowrate in kg/s.
 AA = fliplr(A);         % Creates a reversed array of the area throughout the chamber.
 AAx = fliplr(Ax);       % Creates a flipped longitudinal position array.
 AAy = fliplr(Ay);       % Creates a flipped radius array.
+MMx = fliplr(Mx);       % Finds flipped mach number.
 thetac = 360/Nc;  % initializes a theta storage array.
 thetacw = zeros(1,Asz); % Initializes wall half-angle array.
 thetach = zeros(1,Asz); % Initializes cooled segment angle array.
@@ -123,8 +124,9 @@ Ach = zeros(1,Asz);     % Initializes channel area array.
 Pch = zeros(1,Asz);     % Initializes channel perimeter array.
 dch = zeros(1,Asz);     % Initializes hydraulic diameter array.
 vc = zeros(1,Asz);      % Initializes channel velocity array.
-Rec = zeros(1,Asz);      % Initializes channel velocity array.
-Tco = zeros(1,Asz);      % Initializes channel velocity array.
+Rec = zeros(1,Asz);     % Initializes channel velocity array.
+Tco = zeros(1,Asz);     % Initializes channel velocity array.
+Taw = zeros(1,Asz);     % Initializes adiabatic wall temp array. 
 muc = @(T) Au*exp(Bu/T+Cu*T+Du*T^2); % Function for ethanol viscosity in Pa-s.
 syms Twg Twc
 Tco(1) = 273.15;
@@ -136,12 +138,13 @@ for i = 1:1:Asz
     Pch(i) = 4*pi*thetach(i)/360*(2*AAy(i)+2*tc+wc)+2*wc;                                % Finds channel perimeter in m.
     dch(i) = 4*Ach(i)/Pch(i);                                                            % Finds hydraulic diamter in m.
 % Chamber gas solving
-    %Taw(i) = 
+    
+    Taw(i) = Tcns*((1+r*((gamma-1)/2)*MMx(i)^2))/(1+(gamma-1)/2*MMx(i)^2); 
 % Channel flow conditions
     vc(i) = mdotc/(rhoeth*Ach(i)); % Finds channel velocity in m/s.
     Tco(i) = 273.15;
     Rec(i) = rhoeth*vc(i)*dch(i)/muc(Tco(i));
-    Prc(i) = 
+    %Prc(i) = 
     %Nuc = @(mu,muw) .027*Rec(i)^.8*Prc
 end
 thetach = fliplr(thetac);
