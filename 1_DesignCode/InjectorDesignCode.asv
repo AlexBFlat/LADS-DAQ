@@ -8,9 +8,9 @@ mdot = 0.2915; % Total engine flowrate, in kg/s.
 of = 1.1;      % Oxidizer/Fuel ratio.
 Teth = 430;    % Sets ethanol entrance temp in K.
 TMR = 1;       % Sets TMR.
-N = 20;        % Sets number of pintle holes.
+N = 18;        % Sets number of pintle holes.
 dcdp = 3;      % Sets chamber to pintle diameter ratio.
-l = 4e-3;      % Orifice depth in m.
+l = 1e-3;      % Orifice depth in m.
 DelP = 20;     % Injector pressure drop percentage.
 Pcns = 420;    % Chamber pressure in psia.
 %d = 1e-3;
@@ -38,18 +38,15 @@ muf = @(T) Am*exp(Bm/T+Cm*(T)+Dm*T^2);
 LMRf = @(mdotj,mdotf,vj,vf,d,w) mdotj*vj/(d/w*mdotf*vf);
 TMRf = @(mdotj, vj, mdotf, vf) mdotj*vj/mdotf/vf;
 vjf = @(mdotj, N, Dp, rhoeth,h) 4*mdotj/((pi/N*((Dp/2+h)^2-(Dp/2)^2))*rhoeth);
-Aff = @(h) pi/N*((Dp/2+h)^2-(Dp/2)^2);
-vff = @(Af) 4*mdotto/N/(Af*rhoox);
-
 
 %%% Program Solving %%%
 syms hs ds;
 mdotj = mdottf/N; % Finds single orifice jet flowrate in kg/s.
 mdotf = mdotto/N; % Finds single segment of oxidizer film flowrate in kg/s.
-Aj = pi*ds^2/4;
+Aj = pi*ds^2;
 Afs = pi/N*((Dp/2+hs)^2-(Dp/2)^2);
-vj = mdotj/(Aj*rhoeth);
-vfs = mdotf/(Afs*rhoox);
+vj = 4*mdotj/(Aj*rhoeth);
+vfs = 4*mdotf/(Afs*rhoox);
 LMRs = mdotj*vj/(ds/2*mdotf*vfs);
 Js = (ds/hs)^.652*(-.521*exp(-3*LMRs)+.567*exp(-2*LMRs)-.145*exp(-LMRs)+.128);
 Re = rhoeth*ds*vj/muf(Teth);
@@ -60,7 +57,6 @@ f2 = Cdjs*Aj*sqrt(2*rhoeth*(Pj-Pa))-mdotj;
 [h, d] = vpasolve(f1,f2,hs,ds);
 h = real(h);
 d = real(d);
-theta = acosd(1/(1+LMRf(mdotj,mdotf,vjf(mdotj,N,Dp,rhoeth,h),vff(Aff(h)),d,w)));
-LMR = LMRf(mdotj,mdotf,vjf(mdotj,N,Dp,rhoeth,h),vff(Aff(h)),d,w);
+theta = acosd(1/(1+LMRf(mdotj,mdotf,vjf(mdotj,N,Dp,rhoeth,h),vff,d,w)));
 fprintf('h: %fmm d: %fmm theta: %f\n',h*10^(3),d*10^3,theta);
 %f1 = 
