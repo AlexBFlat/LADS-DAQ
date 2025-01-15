@@ -5,6 +5,12 @@
 % Update to use non-constant density and specific heat!
 % Deal with fins
 % Current nusselt corellation is not valid, is limited to above 10000 (0.027)
+% 1. Variable specific heat
+% 2. Variable density
+% 3. Nusselt corellation for laminar in chat chat
+% 4. Deal with fins 
+% 5. Update chamber volume approximation to deal with fillet!
+% 6. Add pressure drop (maybe) and correction from paper
 
 clear; close all; clc;
 %% Introduction
@@ -22,9 +28,9 @@ fprintf(['/////////////////////////////////////\n' ...
 %  ||///////////////
 %  Design input values
 % Engine performance
-F = 69;          % Thrust in lb.
+F = 150;          % Thrust in lb (69kg).
 %Isp = 261;  % Isp in seconds.
-of = 1.5;      % Oxidizer to fuel ratio.
+of = 1.1;      % Oxidizer to fuel ratio.
 [Tcns, Isp] = OFcor(of);
 epsilonc = 22.5;
 %epsilonc = 22.5; % Chamber area ratio.
@@ -42,10 +48,10 @@ Mi = .0459;      % Sets nozzle inlet mach number.
 R2rat = 1.5;     % Ratio of R2 to Rt.
 Lengthfrac = 80; % Rao nozzle length fraction in percent.
 Ndiv = 120;
-Nc = 15;         % Number of channels
-tc = 1e-3;       % Thickness of chamber wall in meters.
+Nc = 30;         % Number of channels
+tc = .8e-3;       % Thickness of chamber wall in meters.
 tcw = 1e-3;      % Thickness of channel wall in meters.
-wc = 1e-3;       % Channel heigh in meters.
+wc = .8e-3;       % Channel heigh in meters.
 % Environmental constants
 g = 9.81;        % Acceleration due to gravity in m/s2.
 gamma = 1.1598;  % Gamma of combustion gasses.
