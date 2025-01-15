@@ -2,6 +2,9 @@
 %% || Initializations and setup //
 %  ||////////////////////////////
 %  Design input values
+% Update to use non-constant density and specific heat!
+% Deal with fins
+% Current nusselt corellation is not valid, is limited to above 10000 (0.027)
 
 clear; close all; clc;
 %% Introduction
@@ -21,7 +24,7 @@ fprintf(['/////////////////////////////////////\n' ...
 % Engine performance
 F = 69;          % Thrust in lb.
 %Isp = 261;  % Isp in seconds.
-of = 1.1;      % Oxidizer to fuel ratio.
+of = 1.5;      % Oxidizer to fuel ratio.
 [Tcns, Isp] = OFcor(of);
 epsilonc = 22.5;
 %epsilonc = 22.5; % Chamber area ratio.
@@ -39,7 +42,7 @@ Mi = .0459;      % Sets nozzle inlet mach number.
 R2rat = 1.5;     % Ratio of R2 to Rt.
 Lengthfrac = 80; % Rao nozzle length fraction in percent.
 Ndiv = 120;
-Nc = 20;         % Number of channels
+Nc = 15;         % Number of channels
 tc = 1e-3;       % Thickness of chamber wall in meters.
 tcw = 1e-3;      % Thickness of channel wall in meters.
 wc = 1e-3;       % Channel heigh in meters.
@@ -47,13 +50,14 @@ wc = 1e-3;       % Channel heigh in meters.
 g = 9.81;        % Acceleration due to gravity in m/s2.
 gamma = 1.1598;  % Gamma of combustion gasses.
 M = 22.2429;     % Molar mass of combustion gasses in kmol.
-Ro = 8314.36;    % Universal gas constant in J/kmol/K
+Ro = 8.31436e3;    % Universal gas constant in J/kmol/K
 R = Ro/M;        % Gas constant in J/kgK.
 Lstar = 63.27;   % Sets L star in inches, the characteristic nozzle length for ethanol.
-Keth = .17;      % Thermal conductivity of ethanol in W/mK.
+Keth = .167;      % Thermal conductivity of ethanol in W/mK.
 Kss = 15;        % Thermal conductivity of stainless steel in W/mk.
 rhoeth = 789;    % Density of ethanol in kg/m3.
 Cpeth = 2.57e3;  % Specific heat of ethanol in J/kgK.
+Prg = .52;       % Prandtl number from RPA.
 
 % Value printing
 fprintf(['|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n' ...
@@ -69,12 +73,13 @@ Psi2Pa = 6895; % Conversion factor psia to Pa.
 in2m = 39.37;  % Conversion factor in to m.
 R2K = 5/9;     % Conversion factor R to K.
 % Conversions
-F = lb2N*F;         % Converts thrust to N.
-Pcns = Psi2Pa*Pc;   % Converts chamber pressure to Pa.
-Pe = Psi2Pa*Pe;     % Converts exit pressure to Pa.
-Tcns = Tcns*R2K;    % Converts chamber temperature to K.
-Lstar = Lstar/in2m; % Converts
-rhocns = Pcns/R/Tcns;
+F = lb2N*F;           % Converts thrust to N.
+Pcns = Psi2Pa*Pc;     % Converts chamber pressure to Pa.
+Pe = Psi2Pa*Pe;       % Converts exit pressure to Pa.
+%Tcns = Tcns*R2K;     % Converts chamber temperature to K.
+Lstar = Lstar/in2m;   % Converts L star to m.
+rhocns = Pcns/R/Tcns; % Stagnation density in kg/m3.
+Cpm2CpI = 4184;       % Conversion of metric specific heat to imperal.
 
 %  Fluid property import
 %py = pyenv(Version="C:\Users\Alex\Desktop\LADS-GIT-Repos\mainenv\Scripts\python.exe");
@@ -131,36 +136,75 @@ Rec = zeros(1,Asz);     % Initializes channel velocity array.
 Tco = zeros(1,Asz);     % Initializes channel velocity array.
 Taw = zeros(1,Asz);     % Initializes adiabatic wall temp array. 
 mug = zeros(1,Asz);     % Initializes gas viscosity array.
+mugI = zeros(1,Asz);     % Initializes gas viscosity array.
 Reg = zeros(1,Asz);     % Initializes gas reynolds number.
 Prc = zeros(1,Asz);     % Initializes fluid prandtl number.
-muc = @(T) Au*exp(Bu/T+Cu*T+Du*T^2); % Function for ethanol viscosity in Pa-s.
-Prg = 4*gamma/(9*gamma-5);
+%muc = @(T) Au*exp(Bu/T+Cu*T+Du*T^2); % Function for ethanol viscosity in Pa-s.
+%Prg = 4*gamma/(9*gamma-5);
 syms Twgs Twcs qs;
-Tco(1) = 273.15;
+Tco(1) = 293.15;
+Cpg = R/(1-1/gamma);                                            % Gas specific heat in J/kgK.
+cstar = sqrt(R*Tcns/gamma*((gamma+1)/2)^((gamma+1)/(gamma-1))); % Characteristic velocity in m/s.
+cstarI = cstar*in2m/12;                                         % Finds characteristic velocity in ft/s.
+gI = 32.2;                                                 % Finds acceleration due to gravity in ft/s2.
+PcnsI = Pcns/Psi2Pa;                                            % Chamber stag. pressure in psia.
+CpI = Cpg/Cpm2CpI;                                              % SPecific heat in imperial units.
+DtI = Dt*in2m;
 for i = 1:1:Asz
 % Area solving
     thetacw(i) = 2*asind(tcw/(4*(AAy(i)+tc))); % Finds channel half-angle in degrees.
     thetach(i) = thetac - 2*thetacw(i);        % Finds cooled segment half angle in degrees.
     Ach(i) = thetach(i)/360*pi*((AAy(i)+tc+wc)^2-(AAy(i)+tc)^2) + wc^2*sind(thetacw(i)); % Finds channel area in m2.
-    Pch(i) = 4*pi*thetach(i)/360*(2*AAy(i)+2*tc+wc)+2*wc;                                % Finds channel perimeter in m.
+    Pch(i) = 2*pi*thetach(i)/360*(2*AAy(i)+2*tc+wc)+2*wc;                                % Finds channel perimeter in m.
     dch(i) = 4*Ach(i)/Pch(i);                                                            % Finds hydraulic diamter in m.
 % Chamber gas solving
-    mug(i) = 46.6*10^(-10)*9/5*TTx(i)^.6*M^.5*39.3701/2.205;                      % Finds viscosity in kg/m-s.
+    %mug(i) = 46.6*10^(-10)*9/5*TTx(i)^.6*M^.5*39.3701/2.205;                      % Finds viscosity in kg/m-s.
+    mug(i) = 1.0405e-4;
+    %mugI(i) = mug(i)*g/lb2N*in2m;
+    mugI(i) = .05599*mug(i);
     Reg(i) = rhox(i)*vvx(i)*AAy(i)/mug(i);                                          % Finds Reynolds number for gas.
     if Reg(i)>4000                                                                  % Checks if flow is turbulent or laminar.
-        r = Prg^.35;                                                                % If flow is turbulent, finds recovery factor.
+        r = Prg^.33;                                                                % If flow is turbulent, finds recovery factor.
     else
         r = Prg^.5;                                                                 % If flow is laminar, finds recovery factor.
     end
     Taw(i) = Tcns*((1+r*((gamma-1)/2)*MMx(i)^2))/(1+(gamma-1)/2*MMx(i)^2); 
 % Channel flow conditions
     vc(i) = mdotc/(rhoeth*Ach(i)); % Finds channel velocity in m/s.
-    Tco(i) = 273.15;                                        % Coolant bulk temperature in K.
-    Rec(i) = rhoeth*vc(i)*dch(i)/muc(Tco(i));               % Reynolds number in cooling channel.
-    Prc(i) = muc(Tco(i))*Cpeth/Keth;                        % Prandtl number in cooling channel.
-    Nuc =  .027*Rec(i)^.8*Prc(i)^.4*(muc(Tco(i))/muc(Twcs)); % Finds nusselt number. Symbolic.
+    %Tco(i) = 300;                                        % Coolant bulk temperature in K.
+    muc = Au*exp(Bu/Tco(i)+Cu*Tco(i)+Du*Tco(i)^2);
+    mucw = Au*exp(Bu/Twcs+Cu*Twcs+Du*Twcs^2);
+    Rec = rhoeth*vc(i)*dch(i)/muc;               % Reynolds number in cooling channel.
+    Prc = muc*Cpeth/Keth;                        % Prandtl number in cooling channel.
+    Nuc =  .027*Rec^.8*Prc^.4*(muc/mucw)^.14; % Finds nusselt number. Symbolic.
     hc = Keth*Nuc/dch(i);                                   % Coolant side HTC.
-    sigma = 1/((1/2*Twgs/Tcns*(1+(gamma+1)/2*MMx(i)^2)+1/2)^.68*(1+(gamma-1)/2*MMx(i)^2));
+    sigma = 1/((1/2*Twgs/Tcns*(1+(gamma-1)/2*MMx(i)^2)+1/2)^.68*(1+(gamma-1)/2*MMx(i)^2)^.12);
+    %hg = 2943444.1131*((0.026/(DtI^.2)*(mugI(i)^.2*CpI/(Prg^.6))*(PcnsI*gI/cstarI)^.8*(DtI/(1.882*DtI/4))^.1)*(At/AA(i))^.9*sigma);
+    hg = 2943444.1131*((0.026/(DtI^.2)*(mugI(i)^.2*CpI/(Prg^.6))*(PcnsI*gI/cstarI)^.8*((DtI/(1.882*DtI/4))^.1)*(At/AA(i))^.9))*sigma;
+    %2943444.113*
+    f1 = hg*(Taw(i)-Twgs)-qs;
+    f2 = Kss/tc*(Twgs-Twcs) - qs;
+    f3 = hc*(Twcs-Tco(i)) - qs;
+    if i <= 2
+    [Twg(i),Twc(i),q(i)] = vpasolve([f1,f2,f3],[Twgs,Twcs,qs]);
+    else
+    [Twg(i),Twc(i),q(i)] = vpasolve([f1,f2,f3],[Twgs,Twcs,qs],[Twg(i-1),Twc(i-1),1e7]);
+    end
+    %Twc(i) = 500; Twg(i) = 1000; q(i) = 2000;
+    if i ~= Asz
+    dx(i) = AAx(i+1)-AAx(i);
+    dy(i) = AAy(i+1)-AAy(i);
+    SAch(i) = 2*pi*AAy(i)*sqrt(dx(i)^2+dy(i)^2)*thetac/360;
+    Tco(i+1) = q(i)/mdotc/Cpeth*SAch(i)+Tco(i);
+    else
+    end
+    Nucv(i) =  .027*Rec^.8*Prc^.4*((Au*exp(Bu/Tco(i)+Cu*Tco(i)+Du*Tco(i)^2))/(Au*exp(Bu/Twc(i)+Cu*Twc(i)+Du*Twc(i)^2)))^.14;
+    hcv(i) = Keth*Nucv(i)/dch(i);
+    %2943444.1131*
+    sigmav(i) = 1/((1/2*Twg(i)/Tcns*(1+(gamma-1)/2*MMx(i)^2)+1/2)^.68*(1+(gamma-1)/2*MMx(i)^2)^.12);
+    hgv(i) = 2943444.1131*(0.026/(DtI^.2)*(mugI(i)^.2*CpI/(Prg^.6))*(PcnsI*gI/cstarI)^.8*((DtI/(1.882*DtI/4))^.1)*(At/AA(i))^.9)*sigmav(i);
+    %hgv(i) = hg;
+    fprintf('Channel viscosity: %f Re: %f Pr: %f Nuc: %f hc: %f hg: %f sigma: %f\n',muc,Rec,Prc,Nucv(i),hcv(i),hgv(i),sigmav(i));
 end
 thetach = fliplr(thetac);
 Ach = fliplr(Ach);
@@ -169,12 +213,16 @@ Pch = fliplr(Pch);
 vc = fliplr(vc);
 Rec = fliplr(Rec);
 Taw = fliplr(Taw);
+Twg = fliplr(Twg);
+Twc = fliplr(Twc);
+Tco = fliplr(Tco);
+q = fliplr(q);
 
 %  ||//////////////
 %% || Plotting  //
 %  ||////////////
 
-figure(1);
+figure(3);
 plot(Ax,Px);
 title('Flow properties');
 xlabel('Longitudinal position (m)');
@@ -185,7 +233,7 @@ plot(Ax,Tx);
 ylabel('Temperature (K)');
 hold off;
 
-figure(2);
+figure(4);
 plot(Ax,Mx);
 title('Flow momentum properties');
 xlabel('Longitudinal position (m)');
@@ -196,7 +244,7 @@ plot(Ax,vx);
 ylabel('Velocity (m/s)');
 hold off;
 
-figure(3);
+figure(5);
 plot(Ax,Ach);
 title('Channel geometry properties');
 xlabel('Longitudinal position (m)');
@@ -207,7 +255,7 @@ plot(Ax,dch);
 ylabel('Hydraulic diameter (m)');
 hold off;
 
-figure(4);
+figure(6);
 plot(Ax,vc,Ax,Prc);
 title('Channel flow characteristics');
 xlabel('Longitudinal position (m)');
@@ -219,7 +267,7 @@ ylabel('Coolant reynolds number');
 hold off;
 legend('Channel velocity','Channel Reynolds number','Channel Prandtl number');
 
-figure(5);
+figure(7);
 plot(Ax,Tx);
 title('Combustion gas properties');
 xlabel('Longitudinal position (m)');
@@ -229,3 +277,11 @@ yyaxis right;
 plot(Ax,Taw);
 ylabel('Adiabatic wall temp (K)');
 hold off;
+
+Smelt = linspace(1670,1670,Asz);
+figure(8);
+plot(Ax,Smelt,Ax,Taw,Ax,Twg,Ax,Twc,Ax,Tco);
+title('Chamber heat transfer');
+xlabel('Longitudinal position (m)');
+ylabel('Gas-side temperatures (K)');
+legend('Steel melting temperature','Adiabatic wall','Gas-side wall','Coolant-side wall','Coolant bulk');

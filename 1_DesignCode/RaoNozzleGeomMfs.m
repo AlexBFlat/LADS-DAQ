@@ -24,7 +24,7 @@ Rt = Dt/2;            % Determines the radius of the throat in inches.
 Re = De/2;            % Determines the exit radius in inches.
 R1 = 1.5*Rt;          % Defines R1 fillet.
 Rn = 0.382*Rt;        % Nozzle to throat fillet radius in inches.
-R2 = Rt*R2rat;   
+R2 = Rc*R2rat;   
 Lcyl = Lcyl;
 granularity = 12;     % Defines number of divisions for each function, graphing fidelity.
 
