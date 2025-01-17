@@ -35,7 +35,7 @@ import numpy as np
 #MAX_REQUESTS = 5000
 # SCAN_FREQUENCY is the scan frequency of stream mode in Hz.
 NumChannels = 8
-Samplerate = 50000
+Samplerate = 40000
 SCAN_FREQUENCY = Samplerate / NumChannels
 
 d = None
