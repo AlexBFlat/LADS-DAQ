@@ -116,4 +116,5 @@ def U3stream(SR,NC):
     sdr = StreamDataReader(d)
 
     
-U3stream(50000,8)
+process_U3 = multiprocessing.Process(target=U3stream(50000,8))
+process_U3.start()
