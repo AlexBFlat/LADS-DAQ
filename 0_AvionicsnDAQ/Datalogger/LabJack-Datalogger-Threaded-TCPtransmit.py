@@ -198,6 +198,8 @@ class StreamDataReader(object):
             e = sys.exc_info()[1]
             print("readStreamData exception: %s %s" % (type(e), e))
 
+def is_multiple_of_10(num):
+    return num % 10 == 0
 
 sdr = StreamDataReader(d)
 
@@ -208,6 +210,8 @@ sdrThread.start()
 
 errors = 0
 missed = 0
+logging = 0
+i = 1
 # Read from Queue until there is no data. Adjust Queue.get timeout
 # for slow scan rates.
 while True:
@@ -237,16 +241,21 @@ while True:
         AIN5 = f"{pAIN5[1]:08.4f}"
         pAIN6 = SampleAverager(r,"AIN6", 1)
         AIN6 = f"{pAIN6[1]:08.4f}"
+        if is_multiple_of_10(i):
+            logging = 1
+        else:
+            logging = 0    
         # Do some processing on the data to show off.
         #print("Average of values: AIN0: %s AIN1: %s AIN2: %s AIN3: %s AIN4: %s AIN5: %s AIN6: %s" % (AIN0[1], AIN1[1], AIN2[1], AIN3[1], AIN4[1], AIN5[1], AIN6[1]))
         print("AIN0: %s AIN1: %s AIN2: %s AIN3: %s AIN4: %s AIN5: %s AIN6: %s" % (AIN0,AIN1,AIN2,AIN3,AIN4,AIN5,AIN6))  
-        python_array = [AIN0[:8], AIN1[:8], AIN2[:8], AIN3[:8], AIN4[:8], AIN5[:8], AIN6[:8],1]
+        python_array = [AIN0[:8], AIN1[:8], AIN2[:8], AIN3[:8], AIN4[:8], AIN5[:8], AIN6[:8],logging]
         array_string = ','.join(map(str, python_array))
         # Serialize the data to JSON format
         #data = connection.recv(1024)
         #print(f"Data: {data.decode}")
         # Send the serialized data to the client (LabVIEW)
         connection.sendall(array_string.encode('utf-8'))
+        i += 1
         
     except Queue.Empty:
         if sdr.finished:
