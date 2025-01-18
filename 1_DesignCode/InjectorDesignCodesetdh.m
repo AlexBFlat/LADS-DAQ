@@ -5,9 +5,9 @@ close all; clear; clc;
 %%% Program Inputs %%% 
 % Geometric inputs
 Dc = .0667;    % Chamber inner diameter in m.
-LsDp = 1;
+LsDp = 5;
 DelP = 20;     % Injector pressure drop percentage.
-TMR = 1;       % Sets TMR.
+%TMR = 1;       % Sets TMR.
 N = 20;        % Sets number of pintle holes.
 dcdp = 3;      % Sets chamber to pintle diameter ratio.
 % Ethanol Nescius inputs

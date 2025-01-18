@@ -61,8 +61,8 @@ R = Ro/M;        % Gas constant in J/kgK.
 Lstar = 63.27;   % Sets L star in inches, the characteristic nozzle length for ethanol.
 Keth = .167;      % Thermal conductivity of ethanol in W/mK.
 Kss = 15;        % Thermal conductivity of stainless steel in W/mk.
-rhoeth = 789;    % Density of ethanol in kg/m3.
-Cpeth = 2.57e3;  % Specific heat of ethanol in J/kgK.
+%rhoeth = 789;    % Density of ethanol in kg/m3.
+%Cpeth(i) = 2.57e3;  % Specific heat of ethanol in J/kgK.
 Prg = .52;       % Prandtl number from RPA.
 
 % Value printing
@@ -158,6 +158,8 @@ CpI = Cpg/Cpm2CpI;                                              % SPecific heat 
 DtI = Dt*in2m;
 for i = 1:1:Asz
 % Area solving
+    rhoeth(i) = Tco(i)^2*-.00458+Tco(i)*2.188704+538.3445;
+    Cpeth(i) = Tco(i)^4*1.24703e-5+Tco(i)^3*-.01818+Tco(i)^2*9.82362+Tco(i)*-2320.48+204335.2;
     thetacw(i) = 2*asind(tcw/(4*(AAy(i)+tc))); % Finds channel half-angle in degrees.
     thetach(i) = thetac - 2*thetacw(i);        % Finds cooled segment half angle in degrees.
     Ach(i) = thetach(i)/360*pi*((AAy(i)+tc+wc)^2-(AAy(i)+tc)^2) + wc^2*sind(thetacw(i)); % Finds channel area in m2.
@@ -176,12 +178,12 @@ for i = 1:1:Asz
     end
     Taw(i) = Tcns*((1+r*((gamma-1)/2)*MMx(i)^2))/(1+(gamma-1)/2*MMx(i)^2); 
 % Channel flow conditions
-    vc(i) = mdotc/(rhoeth*Ach(i)); % Finds channel velocity in m/s.
+    vc(i) = mdotc/(rhoeth(i)*Ach(i)); % Finds channel velocity in m/s.
     %Tco(i) = 300;                                        % Coolant bulk temperature in K.
     muc = Au*exp(Bu/Tco(i)+Cu*Tco(i)+Du*Tco(i)^2);
     mucw = Au*exp(Bu/Twcs+Cu*Twcs+Du*Twcs^2);
-    Rec = rhoeth*vc(i)*dch(i)/muc;               % Reynolds number in cooling channel.
-    Prc = muc*Cpeth/Keth;                        % Prandtl number in cooling channel.
+    Rec = rhoeth(i)*vc(i)*dch(i)/muc;               % Reynolds number in cooling channel.
+    Prc = muc*Cpeth(i)/Keth;                        % Prandtl number in cooling channel.
     Nuc =  .027*Rec^.8*Prc^.4*(muc/mucw)^.14; % Finds nusselt number. Symbolic.
     hc = Keth*Nuc/dch(i);                                   % Coolant side HTC.
     sigma = 1/((1/2*Twgs/Tcns*(1+(gamma-1)/2*MMx(i)^2)+1/2)^.68*(1+(gamma-1)/2*MMx(i)^2)^.12);
@@ -201,7 +203,7 @@ for i = 1:1:Asz
     dx(i) = AAx(i+1)-AAx(i);
     dy(i) = AAy(i+1)-AAy(i);
     SAch(i) = 2*pi*AAy(i)*sqrt(dx(i)^2+dy(i)^2)*thetac/360;
-    Tco(i+1) = q(i)/mdotc/Cpeth*SAch(i)+Tco(i);
+    Tco(i+1) = q(i)/mdotc/Cpeth(i)*SAch(i)+Tco(i);
     else
     end
     Nucv(i) =  .027*Rec^.8*Prc^.4*((Au*exp(Bu/Tco(i)+Cu*Tco(i)+Du*Tco(i)^2))/(Au*exp(Bu/Twc(i)+Cu*Twc(i)+Du*Twc(i)^2)))^.14;
