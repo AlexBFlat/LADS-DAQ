@@ -159,7 +159,7 @@ DtI = Dt*in2m;
 for i = 1:1:Asz
 % Area solving
     rhoeth(i) = Tco(i)^2*-.00458+Tco(i)*2.188704+538.3445;
-    Cpeth(i) = Tco(i)^4*1.24703e-5+Tco(i)^3*-.01818+Tco(i)^2*9.82362+Tco(i)*-2320.48+204335.2;
+    Cpeth(i) = Tco(i)^4*
     thetacw(i) = 2*asind(tcw/(4*(AAy(i)+tc))); % Finds channel half-angle in degrees.
     thetach(i) = thetac - 2*thetacw(i);        % Finds cooled segment half angle in degrees.
     Ach(i) = thetach(i)/360*pi*((AAy(i)+tc+wc)^2-(AAy(i)+tc)^2) + wc^2*sind(thetacw(i)); % Finds channel area in m2.
