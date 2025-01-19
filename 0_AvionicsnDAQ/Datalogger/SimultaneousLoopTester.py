@@ -114,6 +114,14 @@ def U3stream(SR,NC):
     Exiting...""")
         sys.exit(0)
     sdr = StreamDataReader(d)
+    sdrThread = threading.Thread(target=sdr.readStreamData)
+    sdrThread.start()
+    while True:
+        result = sdr.data.get(True, 1)
+        r = d.processStreamData(result['result'])
+        pAIN0 = SampleAverager(r,"AIN0", 1)
+        AIN0 = f"{pAIN0[1]:08.4f}"
+        print("AIN0: %s" % (AIN0))
 
     
 process_U3 = multiprocessing.Process(target=U3stream(50000,8))

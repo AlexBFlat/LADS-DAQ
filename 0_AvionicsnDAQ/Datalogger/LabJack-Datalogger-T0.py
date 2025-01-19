@@ -1,99 +1,253 @@
-# Library Inclusions
-import numpy as np            # Imports numpy for numerical operations.
-import scipy as sp            # Imports scipy.
-import pandas as pa           # Imports Pandas for data processing.
-import sys                    # Imports Python sys library.
-from datetime import datetime # Imports datetime library to retrieve the date.
-import u3                     # Imports UE3 Library.
-import traceback              # Imports traceback
+"""
+This example uses Python's built-in threading module to help reach faster
+streaming speeds than streamTest.py.
 
-MAX_REQUESTS = 75     # MAX_REQUESTS is # of packets to be read.
-SCAN_FREQUENCY = 12000 # Sets the data scan frequency.
+Note: Our Python interfaces throw exceptions when there are any issues with
+device communications that need addressed. Many of our examples will
+terminate immediately when an exception is thrown. The onus is on the API
+user to address the cause of any exceptions thrown, and add exception
+handling when appropriate. We create our own exception classes that are
+derived from the built-in Python Exception class and can be caught as such.
+For more information, see the implementation in our source code and the
+Python standard documentation.
+"""
+import sys
+import threading
+import time
 
-# Does somethn
+from copy import deepcopy
+from datetime import datetime
+
 try:
-    numChannels = int(sys.argv[1])
-except:
-    print("Missing or invalid integer value argument that specifies the number of channels")
-    print("Exiting.")
-    sys.exit()
-quickSample = 1
-longSettling = 0
-latestAinValues = [0] * numChannels
-numIterations = 1000
+    import Queue
+except ImportError:  # Python 3
+    import queue as Queue
 
-# Connection initialization for a UE3
-d = u3.U3()                    # Simplified variable for calling the UE3.
-d.configU3()                   # Learns if the U3 is HV or LV.
-d.getCalibrationData()         # Gets the calibration data (converts bytes to volts) from the U3's memory.
-d.configIO(FIOAnalog = 15)        # Sets FIO0 and FIO1 to Analog.
-print("Configuring U3 stream") # Lets the user know program is configuring for stream.
-d.streamConfig(NumChannels=25, PChannels = [0, 1, 2, 3, 4, 5, 6, 7, 8], NChannels = [31, 31, 31, 31, ], Resolution=3, ScanFrequency=SCAN_FREQUENCY)
+import u3
+import u6
+import ue9
+import socket
+import struct
+import json  # To send data in JSON format
+import numpy as np
 
-# Allows for error handling.
-try:
-    print("Start stream")              # Lets the user know stream is starting.
-    d.streamStart()                    # Starts stream in U3.
-    start = datetime.now()             # Starts datetime.
-    print("Start time is %s" % start)  # Prints start time for user.
+# MAX_REQUESTS is the number of packets to be read.
+#MAX_REQUESTS = 5000
+# SCAN_FREQUENCY is the scan frequency of stream mode in Hz.
+NumChannels = 15
+Samplerate = 50000
+SCAN_FREQUENCY = Samplerate / NumChannels
 
-    missed = 0                         # Initializes missed packet counter.
-    dataCount = 0                      # Initializes dataCount.
-    packetCount = 0                    # Initializes packet counter.
+d = None
 
-    AIN0 = 0                           # Initializes AIN variables.
-    AIN1 = 0                           #
-    AIN2 = 0                           #
-    AIN3 = 0                           #
+###############################################################################
+# U3
+# Uncomment these lines to stream from a U3
+###############################################################################
 
-    for r in d.streamData():              #  Iterates through data stored in streamdata.
-        if r is not None:                 #
-            # Our stop condition          
-            if dataCount >= MAX_REQUESTS: # Checks if data count is greater than the max requests, and exits if so.
-                break                     #
+d = u3.U3()
 
-            if r["errors"] != 0:          # Checks for errors.
-                print("Errors counted: %s ; %s" % (r["errors"], datetime.now())) # If errors are present, writes out errors.
-            
-            if r["numPackets"] != d.packetsPerRequest:   # Checks if the number of packets is equal to the loop iteration counter. 
-                print("----- UNDERFLOW : %s ; %s" %      # If so, states underflow.
-                      (r["numPackets"], datetime.now())) #
+# To learn the if the U3 is an HV
+d.configU3()
 
-            if r["missed"] != 0:                         # Checks if any packets are missed.
-                missed += r['missed']                    # Iterates missed counter.
-                print("+++ Missed %s" % r["missed"])     # Prints missed packet number.
+# For applying the proper calibration to readings.
+d.getCalibrationData()
 
-            AIN0 = sum(r["AIN0"])/len(r["AIN0"])                             # Stores values of AIN0 taken during this time.
-            AIN1 = sum(r["AIN1"])/len(r["AIN1"])                             # Stores values of AIN0 taken during this time.
-            AIN2 = sum(r["AIN2"])/len(r["AIN2"])                             # Stores values of AIN0 taken during this time.
-            AIN3 = sum(r["AIN3"])/len(r["AIN3"])                             # Stores values of AIN0 taken during this time.
+# Set the FIO0 to Analog
+FIOEIOAnalog = (2 ** NumChannels) - 1
+fios = 0xFF
+eios = 0xFF
+d.configIO(FIOAnalog=fios, EIOAnalog=eios)
+PChannels = []
+NChannels = []
+for i in range(0,NumChannels):
+    PChannels.append(i)
+    if i <= 7:
+        NChannels.append(31)
+    else:
+        NChannels.append(i)
+        
+print("Configuring U3 stream")
+d.streamConfig(NumChannels=NumChannels, PChannels=PChannels, NChannels=NChannels, Resolution=3, ScanFrequency=SCAN_FREQUENCY)
 
-            print('AIN0: %s AIN1: %s AIN2: %s AIN3: %s\n' % (AIN0, AIN1, AIN2, AIN3))                         # Prints out AIN0   
-            d.toggleLED      
-except:
-    print("".join(i for i in traceback.format_exc()))
-finally:
-    stop = datetime.now()
-    d.streamStop()
-    print("Stream stopped.\n")
-    d.close()
+def SampleAverager(r, AIN, fudgefactor):
+    AIN0 = [1, 2]
+    AIN0[0] = len(r[AIN])
+    AIN0[1] = sum(r[AIN])/len(r[AIN])*fudgefactor
+    return AIN0
 
-    sampleTotal = packetCount * d.streamSamplesPerPacket
+###############################################################################
+# U6
+# Uncomment these lines to stream from a U6
+###############################################################################
+'''
+# At high frequencies ( >5 kHz), the number of samples will be MAX_REQUESTS
+# times 48 (packets per request) times 25 (samples per packet)
+d = u6.U6()
 
-    scanTotal = sampleTotal / 2  # sampleTotal / NumChannels
-    print("%s requests with %s packets per request with %s samples per packet = %s samples total." %
-          (dataCount, (float(packetCount)/dataCount), d.streamSamplesPerPacket, sampleTotal))
-    print("%s samples were lost due to errors." % missed)
-    sampleTotal -= missed
-    print("Adjusted number of samples = %s" % sampleTotal)
+# For applying the proper calibration to readings.
+d.getCalibrationData()
 
-    runTime = (stop-start).seconds + float((stop-start).microseconds)/1000000
-    print("The experiment took %s seconds." % runTime)
-    print("Actual Scan Rate = %s Hz" % SCAN_FREQUENCY)
-    print("Timed Scan Rate = %s scans / %s seconds = %s Hz" %
-          (scanTotal, runTime, float(scanTotal)/runTime))
-    print("Timed Sample Rate = %s samples / %s seconds = %s Hz" %
-          (sampleTotal, runTime, float(sampleTotal)/runTime))
-# Open LabJack
-#d = u3.U3() # Opens the first LabJackU3 found on USB.
-#u3setup(d,1)
+print("Configuring U6 stream")
+d.streamConfig(NumChannels=1, ChannelNumbers=[0], ChannelOptions=[0], SettlingFactor=1, ResolutionIndex=1, ScanFrequency=SCAN_FREQUENCY)
+'''
+
+###############################################################################
+# UE9
+# Uncomment these lines to stream from a UE9
+###############################################################################
+'''
+# Changing MAX_REQUESTS to something higher for more samples.
+MAX_REQUESTS = 10000
+
+# At 200 Hz or higher frequencies, the number of samples will be MAX_REQUESTS
+# times 8 (packets per request) times 16 (samples per packet).
+d = ue9.UE9()
+#d = ue9.UE9(ethernet=True, ipAddress="192.168.1.226")  # Over TCP/ethernet connect to UE9 with IP address 192.168.1.209
+
+# For applying the proper calibration to readings.
+d.getCalibrationData()
+
+print("Configuring UE9 stream")
+
+d.streamConfig(NumChannels=1, ChannelNumbers=[0], ChannelOptions=[0], SettlingTime=0, Resolution=12, ScanFrequency=SCAN_FREQUENCY)
+'''
+
+if d is None:
+    print("""Configure a device first.
+Please open streamTest-threading.py in a text editor and uncomment the lines for your device.
+
+Exiting...""")
+    sys.exit(0)
+
+
+class StreamDataReader(object):
+    def __init__(self, device):
+        self.device = device
+        self.data = Queue.Queue()
+        self.dataCount = 0
+        self.missed = 0
+        self.finished = False
+
+    def readStreamData(self):
+        self.finished = False
+
+        print("Start stream.")
+        start = datetime.now()
+        try:
+            self.device.streamStart()
+            while not self.finished:
+                # Calling with convert = False, because we are going to convert in
+                # the main thread.
+                returnDict = next(self.device.streamData(convert=False))
+                #returnDict = self.device.streamData(convert=False).next()  # Python 2.5
+                if returnDict is None:
+                    print("No stream data")
+                    continue
+
+                self.data.put_nowait(deepcopy(returnDict))
+
+                self.missed += returnDict["missed"]
+                self.dataCount += 1
+                #if self.dataCount >= MAX_REQUESTS:
+                #    self.finished = True
+
+            print("Stream stopped.\n")
+            self.device.streamStop()
+            stop = datetime.now()
+
+            # Delay to help prevent print text overlapping in the two threads.
+            time.sleep(0.200)
+
+            sampleTotal = self.dataCount * self.device.packetsPerRequest * self.device.streamSamplesPerPacket
+            scanTotal = sampleTotal / 1  # sampleTotal / NumChannels
+
+            print("%s requests with %s packets per request with %s samples per packet = %s samples total." %
+                  (self.dataCount, self.device.packetsPerRequest, self.device.streamSamplesPerPacket, sampleTotal))
+
+            print("%s samples were lost due to errors." % self.missed)
+            sampleTotal -= self.missed
+            print("Adjusted number of samples = %s" % sampleTotal)
+
+            runTime = (stop-start).seconds + float((stop-start).microseconds)/1000000
+            print("The experiment took %s seconds." % runTime)
+            print("Actual Scan Rate = %s Hz" % SCAN_FREQUENCY)
+            print("Timed Scan Rate = %s scans / %s seconds = %s Hz" %
+                  (scanTotal, runTime, float(scanTotal)/runTime))
+            print("Timed Sample Rate = %s samples / %s seconds = %s Hz" %
+                  (sampleTotal, runTime, float(sampleTotal)/runTime))
+        except Exception:
+            try:
+                # Try to stop stream mode. Ignore exception if it fails.
+                self.device.streamStop()
+            except:
+                pass
+            self.finished = True
+            e = sys.exc_info()[1]
+            print("readStreamData exception: %s %s" % (type(e), e))
+
+def is_multiple_of_10(num):
+    return num % 10 == 0
+
+sdr = StreamDataReader(d)
+
+sdrThread = threading.Thread(target=sdr.readStreamData)
+
+# Start the stream and begin loading the result into a Queue
+sdrThread.start()
+
+errors = 0
+missed = 0
+logging = 0
+i = 1
+# Read from Queue until there is no data. Adjust Queue.get timeout
+# for slow scan rates.
+AIN = []
+Astr = "Values:"
+while True:
+    try:
+        # Pull results out of the Queue in a blocking manner.
+        result = sdr.data.get(True, 1)
+
+        # If there were errors, print that.
+        if result["errors"] != 0:
+            errors += result["errors"]
+            missed += result["missed"]
+            print("+++++ Total Errors: %s, Total Missed: %s +++++" % (errors, missed))
+
+        # Convert the raw bytes (result['result']) to voltage data.
+        r = d.processStreamData(result['result'])
+        for i in range(0,NumChannels):
+            AIs = f'AIN{i}'
+            if i >= 4:
+                pAI = SampleAverager(r,AIs, 2)
+            else:
+                pAI = SampleAverager(r,AIs, 1)
+            AIval = f"{pAI[1]:08.4f}"
+            AIN.append(AIval)
+            Astr += f" {AIs}: {AIval}V"
+        print(Astr)  
+        Astr = "Values:"
+        AIN = []
+        i += 1
+        
+    except Queue.Empty:
+        if sdr.finished:
+            print("Done reading from the Queue.")
+        else:
+            print("Queue is empty. Stopping...")
+            sdr.finished = True
+        break
+    except KeyboardInterrupt:
+        sdr.finished = True
+    except Exception:
+        e = sys.exc_info()[1]
+        print("main exception: %s %s" % (type(e), e))
+        sdr.finished = True
+        break
+
+# Wait for the stream thread to stop
+sdrThread.join()
+
+# Close the device
+d.close()
