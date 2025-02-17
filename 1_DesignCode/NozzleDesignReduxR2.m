@@ -28,11 +28,11 @@ fprintf(['/////////////////////////////////////\n' ...
 %  ||///////////////
 %  Design input values
 % Engine performance
-F = 150;          % Thrust in lb (69kg).
+F = 1500;          % Thrust in lb (69kg).
 %Isp = 261;  % Isp in seconds.
 of = 1.1;      % Oxidizer to fuel ratio.
 [Tcns, Isp] = OFcor(of);
-epsilonc = 22.5;
+epsilonc = 11;
 %epsilonc = 22.5; % Chamber area ratio.
 thetacon = 50;   % converging section angle in degrees.
 % Engine pressures
@@ -145,7 +145,7 @@ mug = zeros(1,Asz);     % Initializes gas viscosity array.
 mugI = zeros(1,Asz);     % Initializes gas viscosity array.
 Reg = zeros(1,Asz);     % Initializes gas reynolds number.
 Prc = zeros(1,Asz);     % Initializes fluid prandtl number.
-%muc = @(T) Au*exp(Bu/T+Cu*T+Du*T^2); % Function for ethanol viscosity in Pa-s.
+%muc(i) = @(T) Au*exp(Bu/T+Cu*T+Du*T^2); % Function for ethanol viscosity in Pa-s.
 %Prg = 4*gamma/(9*gamma-5);
 syms Twgs Twcs qs;
 Tco(1) = 293.15;
@@ -166,8 +166,8 @@ for i = 1:1:Asz
     Pch(i) = 2*pi*thetach(i)/360*(2*AAy(i)+2*tc+wc)+2*wc;                                % Finds channel perimeter in m.
     dch(i) = 4*Ach(i)/Pch(i);                                                            % Finds hydraulic diamter in m.
 % Chamber gas solving
-    %mug(i) = 46.6*10^(-10)*9/5*TTx(i)^.6*M^.5*39.3701/2.205;                      % Finds viscosity in kg/m-s.
-    mug(i) = 1.0405e-4;
+    mug(i) = 46.6*10^(-10)*9/5*TTx(i)^.6*M^.5*39.3701/2.205;                      % Finds viscosity in kg/m-s.
+    %mug(i) = 1.0405e-4;
     %mugI(i) = mug(i)*g/lb2N*in2m;
     mugI(i) = .05599*mug(i);
     Reg(i) = rhox(i)*vvx(i)*AAy(i)/mug(i);                                          % Finds Reynolds number for gas.
@@ -180,11 +180,11 @@ for i = 1:1:Asz
 % Channel flow conditions
     vc(i) = mdotc/(rhoeth(i)*Ach(i)); % Finds channel velocity in m/s.
     %Tco(i) = 300;                                        % Coolant bulk temperature in K.
-    muc = Au*exp(Bu/Tco(i)+Cu*Tco(i)+Du*Tco(i)^2);
+    muc(i) = Au*exp(Bu/Tco(i)+Cu*Tco(i)+Du*Tco(i)^2);
     mucw = Au*exp(Bu/Twcs+Cu*Twcs+Du*Twcs^2);
-    Rec = rhoeth(i)*vc(i)*dch(i)/muc;               % Reynolds number in cooling channel.
-    Prc = muc*Cpeth(i)/Keth;                        % Prandtl number in cooling channel.
-    Nuc =  .027*Rec^.8*Prc^.4*(muc/mucw)^.14; % Finds nusselt number. Symbolic.
+    Rec = rhoeth(i)*vc(i)*dch(i)/muc(i);               % Reynolds number in cooling channel.
+    Prc = muc(i)*Cpeth(i)/Keth;                        % Prandtl number in cooling channel.
+    Nuc =  .027*Rec^.8*Prc^.4*(muc(i)/mucw)^.14; % Finds nusselt number. Symbolic.
     hc = Keth*Nuc/dch(i);                                   % Coolant side HTC.
     sigma = 1/((1/2*Twgs/Tcns*(1+(gamma-1)/2*MMx(i)^2)+1/2)^.68*(1+(gamma-1)/2*MMx(i)^2)^.12);
     %hg = 2943444.1131*((0.026/(DtI^.2)*(mugI(i)^.2*CpI/(Prg^.6))*(PcnsI*gI/cstarI)^.8*(DtI/(1.882*DtI/4))^.1)*(At/AA(i))^.9*sigma);
@@ -212,7 +212,11 @@ for i = 1:1:Asz
     sigmav(i) = 1/((1/2*Twg(i)/Tcns*(1+(gamma-1)/2*MMx(i)^2)+1/2)^.68*(1+(gamma-1)/2*MMx(i)^2)^.12);
     hgv(i) = 2943444.1131*(0.026/(DtI^.2)*(mugI(i)^.2*CpI/(Prg^.6))*(PcnsI*gI/cstarI)^.8*((DtI/(1.882*DtI/4))^.1)*(At/AA(i))^.9)*sigmav(i);
     %hgv(i) = hg;
-    fprintf('Channel viscosity: %f Re: %f Pr: %f Nuc: %f hc: %f hg: %f sigma: %f\n',muc,Rec,Prc,Nucv(i),hcv(i),hgv(i),sigmav(i));
+    fprintf('Channel viscosity: %f Re: %f Pr: %f Nuc: %f hc: %f hg: %f sigma: %f\n',muc(i),Rec,Prc,Nucv(i),hcv(i),hgv(i),sigmav(i));
+    if Ax(i) == 0
+        it = i;
+        %fprintf('Throat found!\n')
+    end
 end
 thetach = fliplr(thetac);
 Ach = fliplr(Ach);
