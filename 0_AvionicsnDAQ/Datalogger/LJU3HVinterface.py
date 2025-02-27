@@ -93,12 +93,18 @@ def AINread(NumChannels,scaling):
     tstamp = f"{momtime:12.4f}"
     outarray.append(tstamp)
     for i in range(0,NumChannels+1): # Iterates through all AIN channels.
+        C0 = int(scaling[5][i])
+        C1 = int(scaling[4][i])
+        C2 = int(scaling[3][i])
+        C3 = int(scaling[2][i])
+        C4 = int(scaling[1][i])
+        C5 = int(scaling[0][i])
         if i <= 3:
             AINv.append(d.getAIN(posChannel=i, negChannel=31, longSettle=False,quickSample=False)) # Pulls AIN voltage values from LabJack.
-            AIN.append(pow(AINv[i],5)*5+pow(AINv[i],4)*4+pow(AINv[i],3)*3+pow(AINv[i],2)*2+pow(AINv[i],1)*1+2)
+            AIN.append(pow(AINv[i],5)*C5+pow(AINv[i],4)*C4+pow(AINv[i],3)*C3+pow(AINv[i],2)*C2+pow(AINv[i],1)*C1+C0)
         else:
             AINv.append(d.getAIN(posChannel=i, negChannel=31, longSettle=False,quickSample=False)*2.01124) # Pulls AIN voltage values from LabJack.
-            AIN.append(pow(AINv[i],5)*5+pow(AINv[i],4)*4+pow(AINv[i],3)*3+pow(AINv[i],2)*2+pow(AINv[i],1)*1+2)
+            AIN.append(pow(AINv[i],5)*C5+pow(AINv[i],4)*C4+pow(AINv[i],3)*C3+pow(AINv[i],2)*C2+pow(AINv[i],1)*C1+C0)
         AINf.append(f"{AIN[i]:10.4f}")     # Converts AIN values to limited decimal values.
         #print(f'AIN{i}: {AINf[i]}', end=" ")  # Prints out AIN values to console.
         outarray.append(AINf[i])
