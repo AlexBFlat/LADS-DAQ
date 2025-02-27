@@ -1,16 +1,3 @@
-"""
-This example uses Python's built-in threading module to help reach faster
-streaming speeds than streamTest.py.
-
-Note: Our Python interfaces throw exceptions when there are any issues with
-device communications that need addressed. Many of our examples will
-terminate immediately when an exception is thrown. The onus is on the API
-user to address the cause of any exceptions thrown, and add exception
-handling when appropriate. We create our own exception classes that are
-derived from the built-in Python Exception class and can be caught as such.
-For more information, see the implementation in our source code and the
-Python standard documentation.
-"""
 import sys
 import threading
 import time
@@ -34,7 +21,7 @@ import numpy as np
 # MAX_REQUESTS is the number of packets to be read.
 #MAX_REQUESTS = 5000
 # SCAN_FREQUENCY is the scan frequency of stream mode in Hz.
-NumChannels = 15
+NumChannels = 5
 Samplerate = 50000
 SCAN_FREQUENCY = Samplerate / NumChannels
 
@@ -75,51 +62,6 @@ def SampleAverager(r, AIN, fudgefactor):
     AIN0[0] = len(r[AIN])
     AIN0[1] = sum(r[AIN])/len(r[AIN])*fudgefactor
     return AIN0
-
-###############################################################################
-# U6
-# Uncomment these lines to stream from a U6
-###############################################################################
-'''
-# At high frequencies ( >5 kHz), the number of samples will be MAX_REQUESTS
-# times 48 (packets per request) times 25 (samples per packet)
-d = u6.U6()
-
-# For applying the proper calibration to readings.
-d.getCalibrationData()
-
-print("Configuring U6 stream")
-d.streamConfig(NumChannels=1, ChannelNumbers=[0], ChannelOptions=[0], SettlingFactor=1, ResolutionIndex=1, ScanFrequency=SCAN_FREQUENCY)
-'''
-
-###############################################################################
-# UE9
-# Uncomment these lines to stream from a UE9
-###############################################################################
-'''
-# Changing MAX_REQUESTS to something higher for more samples.
-MAX_REQUESTS = 10000
-
-# At 200 Hz or higher frequencies, the number of samples will be MAX_REQUESTS
-# times 8 (packets per request) times 16 (samples per packet).
-d = ue9.UE9()
-#d = ue9.UE9(ethernet=True, ipAddress="192.168.1.226")  # Over TCP/ethernet connect to UE9 with IP address 192.168.1.209
-
-# For applying the proper calibration to readings.
-d.getCalibrationData()
-
-print("Configuring UE9 stream")
-
-d.streamConfig(NumChannels=1, ChannelNumbers=[0], ChannelOptions=[0], SettlingTime=0, Resolution=12, ScanFrequency=SCAN_FREQUENCY)
-'''
-
-if d is None:
-    print("""Configure a device first.
-Please open streamTest-threading.py in a text editor and uncomment the lines for your device.
-
-Exiting...""")
-    sys.exit(0)
-
 
 class StreamDataReader(object):
     def __init__(self, device):
@@ -186,15 +128,27 @@ class StreamDataReader(object):
             e = sys.exc_info()[1]
             print("readStreamData exception: %s %s" % (type(e), e))
 
+class SendData:
+    def __init__(self):
+        self.data = Queue.Queue()
+
+    def hello(self):
+        self.data.put_nowait(2)
+
+
 def is_multiple_of_10(num):
     return num % 10 == 0
-
+port = 2780
+ip = "000.000.00.00"
 sdr = StreamDataReader(d)
+SND = SendData()
 
 sdrThread = threading.Thread(target=sdr.readStreamData)
+sndThread = threading.Thread(target=SND.hello)
 
 # Start the stream and begin loading the result into a Queue
 sdrThread.start()
+sndThread.start()
 
 errors = 0
 missed = 0
@@ -205,9 +159,12 @@ i = 1
 AIN = []
 Astr = "Values:"
 while True:
+    #sndres = SND.data.get()
+    #print(sndres)
     try:
         # Pull results out of the Queue in a blocking manner.
         result = sdr.data.get(True, 1)
+        
 
         # If there were errors, print that.
         if result["errors"] != 0:
@@ -248,6 +205,7 @@ while True:
 
 # Wait for the stream thread to stop
 sdrThread.join()
+sndThread.join()
 
 # Close the device
 d.close()
