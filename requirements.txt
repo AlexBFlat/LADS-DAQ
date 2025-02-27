@@ -1,3 +1,4 @@
+colorama==0.4.6
 CoolProp==6.6.0
 et_xmlfile==2.0.0
 LabJackPython==2.1.0
