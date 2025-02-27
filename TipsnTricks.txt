@@ -1,0 +1,5 @@
+Screen
+Detach: CTRL+A then CTRL+D
+Make a new screen: screen -a Screen-name
+Detach: screen -d
+resume: screen -r screen-name

@@ -84,7 +84,7 @@ def TCPsend(server_socket,array_string,LVConnected,connection,dbg,cnnm,ln,col):
             LVConnected = 0
     return [LVConnected, connection]
 
-def AINread(NumChannels):
+def AINread(NumChannels,scaling):
     AIN = []               # Initializes AIN array - pulling voltage values directly from the LJ.
     AINv = []
     AINf = []              # Initializes limited AIN array - limits digits of values.
@@ -164,7 +164,7 @@ try:
         if elapsed_time != 0:
             runfreq = 1/elapsed_time
         #print(f"Frequency: {runfreq}Hz",end="\r")
-        array_string = AINread(NumChannels)
+        array_string = AINread(NumChannels,scalings)
         #print(array_string, end="\r")
         #TCPsend(connection,server_socket,array_string,name,line):
         
