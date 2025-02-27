@@ -5,6 +5,8 @@ import time
 import socket
 from datetime import datetime
 import pytz
+import pandas as pd
+import openpyxl
 
 ### Opens LJU3 and pulls calibration data. ###
 d = u3.U3()                                                                                                                                # Opens the first found LabJack U3.
@@ -79,27 +81,22 @@ def AINread(NumChannels):
 
 LVConnected = 0
 connection = 0
+
+### Sensor configuration ###
+
+df = pd.read_excel('AIN_Scaling.xlsx')
+AINs = df['AIN']
+C5s = df['C5']
+C4s = df['C4']
+C3s = df['C3']
+C2s = df['C2']
+C1s = df['C1']
+C0s = df['C0']
+
+
 ### Main Loop ###
 try:
     while running == 1:        # Runs continuously, delaying by delay to achieve desired data rate.                            
-        '''AIN = []               # Initializes AIN array - pulling voltage values directly from the LJ.
-        AINf = []              # Initializes limited AIN array - limits digits of values.
-        outarray = []          # Initializes TCP output array.
-        momtime = time.time()
-        #print(momtime)
-        tstamp = f"{momtime:12.4f}"
-        #print(tstamp)
-        outarray.append(tstamp)
-        for i in range(0,NumChannels+1): # Iterates through all AIN channels.
-            if i <= 3:
-                AIN.append(d.getAIN(posChannel=i, negChannel=31, longSettle=False,quickSample=False)) # Pulls AIN voltage values from LabJack.
-            else:
-                AIN.append(d.getAIN(posChannel=i, negChannel=31, longSettle=False,quickSample=False)*2.01124) # Pulls AIN voltage values from LabJack.
-            AINf.append(f"{AIN[i]:08.4f}")     # Converts AIN values to limited decimal values.
-            #print(f'AIN{i}: {AINf[i]}', end=" ")  # Prints out AIN values to console.
-            outarray.append(AINf[i])
-        #outarray.append(1)
-        array_string = ','.join(map(str, outarray))'''
         array_string = AINread(NumChannels)
         print(array_string, end="\r")
         #TCPsend(connection,server_socket,array_string,name,line):
