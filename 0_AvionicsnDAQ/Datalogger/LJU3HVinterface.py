@@ -21,8 +21,20 @@ clear_console()
 NumChannels = 15   # Number of channels to be used.
 datarate = 20   # Desired data rate in Hz.
 decp = 2           # Defines number of decimal points desired.
-host = '0.0.0.0'   # Listen on all available interfaces (use specific IP for remote access)
+LVhost = '0.0.0.0'   # Listen on all available interfaces (use specific IP for remote access)
 LVport = 49153       # Port to listen on (ensure it's open and available)
+LVConnected = 0
+LVconnection = 0
+
+NChost = '0.0.0.0'   # Listen on all available interfaces (use specific IP for remote access)
+NCport = 49154       # Port to listen on (ensure it's open and available)
+NCConnected = 0
+NCconnection = 0
+
+DLhost = '0.0.0.0'   # Listen on all available interfaces (use specific IP for remote access)
+DLport = 49155       # Port to listen on (ensure it's open and available)
+DLConnected = 0
+DLconnection = 0
 
 ## Conversion
 #delay = 1/datarate # Converts delay into seconds of wait time
@@ -111,14 +123,10 @@ def AINread(NumChannels,scaling):
         array_string = ','.join(map(str, outarray))
     return array_string
 
-LVConnected = 0
-LVconnection = 0
-
-NCConnected = 0
-NCconnection = 0
-
-DLConnected = 0
-DLconnection = 0
+### TCP setup ###
+LVsock = socketconfig(LVhost,LVport)
+NCsock = socketconfig(NChost,NCport)
+DLsock = socketconfig(DLhost,DLport)
 
 ### Sensor configuration ###
 
@@ -145,7 +153,7 @@ start_time = time.time()
 dbg = True
 runfreq = 0
 tct = 0
-lvfr = 25
+lvfr = 10
 lvlmt = 1/lvfr
 print('''|||=========================================///
 |||     LabJack U3 Interface Program       ///
@@ -154,23 +162,20 @@ print('''|||=========================================///
 |||                                     ///
 |||                                    ///
 |||===================================///''')
-LVsock = socketconfig(host,LVport)
-NCsock = socketconfig(host,49154)
-DLsock = socketconfig(host,49155)
 try:
     while running == 1:        # Runs continuously, delaying by delay to achieve desired data rate.                            
         end_time = time.time()
         elapsed_time = end_time - start_time
         tct = tct + elapsed_time
+        array_string = AINread(NumChannels+1,scalings)
         if tct >= lvlmt:
             tct = 0
             [LVConnected, LVconnection] = TCPsend(LVsock,array_string,LVConnected,LVconnection,dbg,'LV Console 1',4,4)
             [NCConnected, NCconnection] = TCPsend(NCsock,array_string,NCConnected,NCconnection,dbg,'Nathan Console',5,4)
-            [DLConnected, DLconnection] = TCPsend(DLsock,array_string,DLConnected,DLconnection,dbg,'Data Logger',6,4)
         if elapsed_time != 0:
             runfreq = 1/elapsed_time
+        [DLConnected, DLconnection] = TCPsend(DLsock,array_string,DLConnected,DLconnection,dbg,'Data Logger',6,4)
         #print(f"Frequency: {runfreq}Hz",end="\r")
-        array_string = AINread(NumChannels,scalings)
         #print(array_string, end="\r")
         #TCPsend(connection,server_socket,array_string,name,line):
         
