@@ -11,7 +11,7 @@ from colorama import Fore, Back, Style, init
 NumChannels = 15   # Number of channels to be used.
 datarate = 20   # Desired data rate in Hz.
 decp = 2           # Defines number of decimal points desired.
-host = '192.168.10.113'   # Listen on all available interfaces (use specific IP for remote access)
+host = '192.168.11.212'   # Listen on all available interfaces (use specific IP for remote access)
 port = 49155       # Port to listen on (ensure it's open and available)
 
 running = 1    # Initializes running variable.
@@ -28,7 +28,7 @@ def TCPrecv(client_socket,LVConnected,host,port,cnnm,dbg,ln,col,bits):
     data = []
     cnnmlen = len(cnnm)
     try:
-        client_socket.connect((host,port))
+        
         connectable = 1
     except Exception as e:
         eno = e.errno
