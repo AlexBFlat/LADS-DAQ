@@ -62,6 +62,36 @@ def TCPrecv(host,port,bits,connected,client_socket,ln,col,cnnm):
     except:
         return [0,connected,client_socket]
 
+def TCPsend(server_socket,array_string,LVConnected,connection,dbg,cnnm,ln,col):
+    cnnmlen = len(cnnm)
+    if LVConnected == 0:
+        try:
+            connection, client_address = server_socket.accept()
+            LVConnected = 1
+        except:
+            LVConnected = 0
+            if dbg == True:
+                move_cursor(ln,col)
+                frontstr = f"{cnnm}: "
+                print(Fore.WHITE + frontstr, end="\r")
+                fstrl = len(frontstr)
+                move_cursor(ln,fstrl+col)
+                print(Fore.RED + " Not Connected", end="\r")
+    else:
+        #LVConnected = 1
+        if dbg == True:
+            move_cursor(ln,col)
+            frontstr = f"{cnnm}: "
+            print(Fore.WHITE + frontstr, end="\r")
+            fstrl = len(frontstr)
+            move_cursor(ln,fstrl+col)
+            print(Fore.GREEN + " Connected     ", end="\r")
+        try:
+            connection.sendall(array_string.encode('utf-8'))
+        except:
+            LVConnected = 0
+    return [LVConnected, connection]
+
 clear_console()
 
 ### Main Loop ###

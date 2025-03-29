@@ -59,6 +59,44 @@ def TCPrecv(host,port,bits,connected,client_socket,ln,col,cnnm):
     except:
         return [0,connected,client_socket]
 
+def TCPsend(server_socket,array_string,LVConnected,connection,dbg,cnnm,ln,col):
+    cnnmlen = len(cnnm)
+    if LVConnected == 0:
+        try:
+            connection, client_address = server_socket.accept()
+            LVConnected = 1
+        except:
+            LVConnected = 0
+            if dbg == True:
+                move_cursor(ln,col)
+                frontstr = f"{cnnm}: "
+                print(Fore.WHITE + frontstr, end="\r")
+                fstrl = len(frontstr)
+                move_cursor(ln,fstrl+col)
+                print(Fore.RED + " Not Connected", end="\r")
+    else:
+        #LVConnected = 1
+        if dbg == True:
+            move_cursor(ln,col)
+            frontstr = f"{cnnm}: "
+            print(Fore.WHITE + frontstr, end="\r")
+            fstrl = len(frontstr)
+            move_cursor(ln,fstrl+col)
+            print(Fore.GREEN + " Connected     ", end="\r")
+        try:
+            connection.sendall(array_string.encode('utf-8'))
+        except:
+            LVConnected = 0
+    return [LVConnected, connection]
+
+def socketconfig(host,port):
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # Bind the socket to the address and port
+    server_socket.bind((host, port))
+    # Enable the server to listen for incoming connections
+    server_socket.listen()
+    server_socket.setblocking(False)
+    return server_socket
 
 clear_console()
 print('''|||=========================================///
@@ -70,23 +108,22 @@ print('''|||=========================================///
 |||===================================///''')
 host = '169.254.28.201'
 port = 49156
-hostDT = '169.254.28.202'   # Listen on all available interfaces (use specific IP for remote access)
-portDT = 49155       # Port to listen on (ensure it's open and available)
+hostDT = 'SFTSpi.local'   # Listen on all available interfaces (use specific IP for remote access)
+portDT = 49158       # Port to listen on (ensure it's open and available)
 
 running = 1
 connected = 0
 connectedDT = 0
+DLConnected = 0
+DLConnection = 0
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.settimeout(0.3)
-client_socketDT = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client_socketDT.settimeout(0.3)
+DLsock = socketconfig(hostDT,portDT)
 while running == 1:        # Runs continuously, delaying by delay to achieve desired data rate.   
     try:
         [cmd, connected,client_socket] = TCPrecv(host,port,1,connected,client_socket,4,5,'Alex Console')
-        [data, connectedDT,client_socketDT] = TCPrecv(hostDT,portDT,191,connectedDT,client_socketDT,5,5,'LJ interf')
-        move_cursor(8,1)
-        print(data)
-        move_cursor(9,1)
+        array_string = '1'
+        [DLConnected, DLconnection] = TCPsend(DLsock,array_string,DLConnected,DLconnection,1,'Data logger',5,5)
         if cmd == '1':
             GPIO.output(pin, GPIO.HIGH)
         else:
