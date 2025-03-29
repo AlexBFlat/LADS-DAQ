@@ -123,7 +123,7 @@ while running == 1:        # Runs continuously, delaying by delay to achieve des
     try:
         [cmd, connected,client_socket] = TCPrecv(host,port,1,connected,client_socket,4,5,'Alex Console')
         array_string = '1'
-        [DLConnected, DLconnection] = TCPsend(DLsock,array_string,DLConnected,DLconnection,1,'Data logger',5,5)
+        [DLConnected, DLConnection] = TCPsend(DLsock,array_string,DLConnected,DLConnection,1,'Data logger',5,5)
         if cmd == '1':
             GPIO.output(pin, GPIO.HIGH)
         else:
