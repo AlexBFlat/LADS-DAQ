@@ -31,6 +31,7 @@ def TCPrecv(host,port,bits,connected,client_socket,ln,col,cnnm):
             try:
                 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 client_socket.settimeout(0.3)
+                client_socket.setblocking(False)
                 client_socket.connect((host,port))
                 connected = 1
             except:
@@ -51,6 +52,7 @@ def TCPrecv(host,port,bits,connected,client_socket,ln,col,cnnm):
                 client_socket.close()
                 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 client_socket.settimeout(0.3)
+                client_socket.setblocking(False)
             returndata = dataout
             move_cursor(ln,col)
             frontstr = f"{cnnm}: "
@@ -97,8 +99,10 @@ clear_console()
 ### Main Loop ###
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.settimeout(0.3)
+client_socket.setblocking(False)
 client_socket2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket2.settimeout(0.3)
+client_socket2.setblocking(False)
 client_LV = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 connected = 0
 connected2 = 0
