@@ -86,6 +86,7 @@ while running == 1:        # Runs continuously, delaying by delay to achieve des
         [data, connectedDT,client_socketDT] = TCPrecv(hostDT,portDT,191,connectedDT,client_socketDT,5,5,'LJ interf')
         move_cursor(8,1)
         print(data)
+        move_cursor(9,1)
         if cmd == '1':
             GPIO.output(pin, GPIO.HIGH)
         else:
