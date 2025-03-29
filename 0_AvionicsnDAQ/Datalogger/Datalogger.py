@@ -13,7 +13,7 @@ datarate = 20   # Desired data rate in Hz.
 decp = 2           # Defines number of decimal points desired.
 host = '169.254.28.202'   # Listen on all available interfaces (use specific IP for remote access)
 hostcmd = '169.254.28.201'
-portcmd = 49157
+portcmd = 49158
 port = 49155       # Port to listen on (ensure it's open and available)
 
 running = 1    # Initializes running variable.

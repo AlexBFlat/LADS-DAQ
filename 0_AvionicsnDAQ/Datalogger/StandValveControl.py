@@ -70,14 +70,21 @@ print('''|||=========================================///
 |||===================================///''')
 host = '169.254.28.201'
 port = 49156
+hostDT = '169.254.28.202'   # Listen on all available interfaces (use specific IP for remote access)
+portDT = 49155       # Port to listen on (ensure it's open and available)
+
 running = 1
 connected = 0
+connectedDT = 0
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.settimeout(0.3)
+client_socketDT = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client_socketDT.settimeout(0.3)
 while running == 1:        # Runs continuously, delaying by delay to achieve desired data rate.   
     try:
-        [data, connected,client_socket] = TCPrecv(host,port,1,connected,client_socket,4,5,'Alex Console')
-        if data == '1':
+        [cmd, connected,client_socket] = TCPrecv(host,port,1,connected,client_socket,4,5,'Alex Console')
+        [data, connectedDT,client_socketDT] = TCPrecv(hostDT,portDT,191,connectedDT,client_socketDT,5,5,'LJ interf')
+        if cmd == '1':
             GPIO.output(pin, GPIO.HIGH)
         else:
             GPIO.output(pin, GPIO.LOW)
