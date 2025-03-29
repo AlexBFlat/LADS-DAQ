@@ -11,7 +11,7 @@ from colorama import Fore, Back, Style, init
 NumChannels = 15   # Number of channels to be used.
 datarate = 20   # Desired data rate in Hz.
 decp = 2           # Defines number of decimal points desired.
-host = '0.0.0.0'   # Listen on all available interfaces (use specific IP for remote access)
+host = '192.168.11.212'   # Listen on all available interfaces (use specific IP for remote access)
 port = 49155       # Port to listen on (ensure it's open and available)
 
 running = 1    # Initializes running variable.
@@ -111,31 +111,11 @@ LVconnected = 0
 
 
 
-
 Logging = 0
 v = 0
 try:
     while running == 1:        # Runs continuously, delaying by delay to achieve desired data rate.                            
-        AINout = []
-        data = []
-        #data = client_socket.recv(191)
-        [data, LVconnected] = TCPrecv(client_socket,LVconnected,host,port,'LJU3INT',True,4,0,191)
-        try:
-            if LVconnected == 1:
-                decoded = data.decode('utf-8')
-                split = decoded.split(',')
-                TS = float(split[0])
-                for i in range(1,len(split)):
-                    AINout.append(float(split[i]))
-        except:
-            v = 0
-        #LVdata = client_LV.recv(1)
-        #print(LVdata)
-        #logging = LVdata.decode('utf-8')
-        if  Logging == 1:
-             print('Logging!',end="\r")
-             
-        
+        print('Running')
 except Exception as e:
         print(e)
         print('Closed!')

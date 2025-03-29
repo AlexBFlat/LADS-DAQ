@@ -28,12 +28,12 @@ fprintf(['/////////////////////////////////////\n' ...
 %  ||///////////////
 %  Design input values
 % Engine performance
-F = 1500;          % Thrust in lb (69kg).
+F = 69;          % Thrust in lb (69kg).
 %Isp = 261;  % Isp in seconds.
-of = 1.1;      % Oxidizer to fuel ratio.
+of = .8;      % Oxidizer to fuel ratio.
 [Tcns, Isp] = OFcor(of);
-epsilonc = 11;
-%epsilonc = 22.5; % Chamber area ratio.
+%epsilonc = 11;
+epsilonc = 22.5; % Chamber area ratio.
 thetacon = 50;   % converging section angle in degrees.
 % Engine pressures
 Pc = 420;        % Chamber pressure in psia.

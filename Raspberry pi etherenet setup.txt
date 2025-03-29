@@ -1,0 +1,11 @@
+Laptop IP: 169.254.28.201
+nameserver 192.168.11.1
+nameserver 8.8.8.8
+Pi default gateway 169.254.81.10
+PI IP address: 169.254.81.99
+
+1. Install dhcpcd5 
+ -- sudo apt install dhcpcd5
+2. backup dhcdcp
+ -- sudo cp /etc/dhcpcd.conf /etc/dhcdcp.backup
+3. Open the file sudo nano /etc/dhcpcd.conf
