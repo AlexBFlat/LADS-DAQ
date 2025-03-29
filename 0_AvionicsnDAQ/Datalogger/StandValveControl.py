@@ -10,6 +10,11 @@ import openpyxl
 import os
 from colorama import Fore, Back, Style, init
 import sys
+import RPi.GPIO as GPIO
+
+GPIO.setmode(GPIO.BCM)
+pin = 17
+GPIO.setup(pin, GPIO.OUT)
 
 def clear_console():
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -66,6 +71,10 @@ client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 try:
     while running == 1:        # Runs continuously, delaying by delay to achieve desired data rate.   
         [data, connected,client_socket] = TCPrecv(host,port,1,connected,client_socket,4,5,'Alex Console')
+        if data == '1':
+            GPIO.output(pin, GPIO.HIGH)
+        else:
+            GPIO.output(pin, GPIO.LOW)
         '''#print('running')
         if connected == 0:
             try:
