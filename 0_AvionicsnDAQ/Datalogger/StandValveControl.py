@@ -27,6 +27,7 @@ def TCPrecv(host,port,bits,connected,client_socket,ln,col,cnnm):
         if connected == 0:
             try:
                 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                client_socket.settimeout(0.3)
                 client_socket.connect((host,port))
                 connected = 1
             except:
@@ -46,6 +47,7 @@ def TCPrecv(host,port,bits,connected,client_socket,ln,col,cnnm):
                 connected = 0
                 client_socket.close()
                 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                client_socket.settimeout(0.3)
             returndata = dataout
             move_cursor(ln,col)
             frontstr = f"{cnnm}: "
@@ -71,6 +73,7 @@ port = 49156
 running = 1
 connected = 0
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client_socket.settimeout(0.3)
 while running == 1:        # Runs continuously, delaying by delay to achieve desired data rate.   
     try:
         [data, connected,client_socket] = TCPrecv(host,port,1,connected,client_socket,4,5,'Alex Console')

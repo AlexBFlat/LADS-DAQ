@@ -11,7 +11,9 @@ from colorama import Fore, Back, Style, init
 NumChannels = 15   # Number of channels to be used.
 datarate = 20   # Desired data rate in Hz.
 decp = 2           # Defines number of decimal points desired.
-host = '192.168.11.212'   # Listen on all available interfaces (use specific IP for remote access)
+host = '169.254.28.202'   # Listen on all available interfaces (use specific IP for remote access)
+hostcmd = '169.254.28.201'
+portcmd = 49157
 port = 49155       # Port to listen on (ensure it's open and available)
 
 running = 1    # Initializes running variable.
@@ -23,82 +25,53 @@ def clear_console():
 def move_cursor(row, col):
     print(f"\033[{row};{col}H", end="")
 
-def TCPrecv(client_socket,LVConnected,host,port,cnnm,dbg,ln,col,bits):
-    connectable = 0
-    data = []
-    cnnmlen = len(cnnm)
+def TCPrecv(host,port,bits,connected,client_socket,ln,col,cnnm):
     try:
-        client_socket.connect((host,port))
-        connectable = 1
-    except Exception as e:
-        eno = e.errno
-        if eno == 10061: # Not able to connect error.
-            connectable = 0
-        if eno == 10056: # Already connected.
-            connectable = 1
-    #client_socket.shutdown(socket.SHUT_RDWR)
-    if connectable == 1:
-        Connected = 1
-        data = client_socket.recv(bits)
-        move_cursor(ln,col)
-        frontstr = f"{cnnm}: "
-        print(Fore.WHITE + frontstr, end="\r")
-        fstrl = len(frontstr)
-        move_cursor(ln,fstrl+col)
-        print(Fore.GREEN + " Connected     ", end="\r")
-    else:
-        move_cursor(ln,col)
-        frontstr = f"{cnnm}: "
-        print(Fore.WHITE + frontstr, end="\r")
-        fstrl = len(frontstr)
-        move_cursor(ln,fstrl+col)
-        print(Fore.RED + " Not Connected", end="\r")
-        Connected = 0
-    '''if LVConnected == 0:
-        try:
-            client_socket.connect((host,port))
-            Connected = 1
+        if connected == 0:
+            try:
+                client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                client_socket.settimeout(0.3)
+                client_socket.connect((host,port))
+                connected = 1
+            except:
+                l=1
+            returndata = 0
+            move_cursor(ln,col)
+            frontstr = f"{cnnm}: "
+            print(Fore.WHITE + frontstr, end="\r")
+            fstrl = len(frontstr)
+            move_cursor(ln,fstrl+col)
+            print(Fore.RED + " Not Connected", end="\r")
+        else:
             data = client_socket.recv(bits)
+            dataout = data.decode('utf-8')
+            #print(dataout)
+            if len(data) == 0:
+                connected = 0
+                client_socket.close()
+                client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                client_socket.settimeout(0.3)
+            returndata = dataout
             move_cursor(ln,col)
             frontstr = f"{cnnm}: "
             print(Fore.WHITE + frontstr, end="\r")
             fstrl = len(frontstr)
             move_cursor(ln,fstrl+col)
             print(Fore.GREEN + " Connected     ", end="\r")
-        except Exception as e:
-            Connected = 0
-            if dbg == True:
-                move_cursor(ln,col)
-                frontstr = f"{cnnm}: "
-                print(Fore.WHITE + frontstr, end="\r")
-                fstrl = len(frontstr)
-                move_cursor(ln,fstrl+col)
-                print(Fore.RED + " Not Connected", end="\r")
-    else:
-            try:
-                data = client_socket.recv(bits)
-                move_cursor(ln,col)
-                frontstr = f"{cnnm}: "
-                print(Fore.WHITE + frontstr, end="\r")
-                fstrl = len(frontstr)
-                move_cursor(ln,fstrl+col)
-                print(Fore.GREEN + " Connected     ", end="\r")
-            except:
-                move_cursor(ln,col)
-                frontstr = f"{cnnm}: "
-                print(Fore.WHITE + frontstr, end="\r")
-                fstrl = len(frontstr)
-                move_cursor(ln,fstrl+col)
-                print(Fore.RED + " Not Connected", end="\r")
-                Connected = 0''' 
-    return [data,Connected]
+        return [returndata,connected,client_socket]
+    except:
+        return [0,connected,client_socket]
 
 clear_console()
 
 ### Main Loop ###
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client_socket.settimeout(0.3)
+client_socket2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client_socket2.settimeout(0.3)
 client_LV = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 connected = 0
+connected2 = 0
 '''while connected == 0:
     try:
         client_socket.connect((host,port))
@@ -110,12 +83,24 @@ connected = 0
 LVconnected = 0
 
 
-
+clear_console()
+print('''|||=========================================///
+|||      Stand valve control program       ///
+|||-------------System Status-------------///
+|||                                      ///
+|||                                     ///
+|||                                    ///
+|||===================================///''')
 Logging = 0
 v = 0
 try:
     while running == 1:        # Runs continuously, delaying by delay to achieve desired data rate.                            
-        print('Running')
+        [data,connected,client_socket] = TCPrecv(host,port,191,connected,client_socket,4,5,'LJU3 interface')
+        [logcmd,connected2,client_socket2] = TCPrecv(hostcmd,portcmd,1,connected2,client_socket2,5,5,'LJU3 interface')
+        move_cursor(8,1)
+        print(data)
+        move_cursor(9,1)
+        print(logcmd)
 except Exception as e:
         print(e)
         print('Closed!')
