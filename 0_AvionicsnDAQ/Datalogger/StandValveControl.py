@@ -71,10 +71,10 @@ client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 try:
     while running == 1:        # Runs continuously, delaying by delay to achieve desired data rate.   
         [data, connected,client_socket] = TCPrecv(host,port,1,connected,client_socket,4,5,'Alex Console')
-        if data == '1':
-            GPIO.output(pin, GPIO.HIGH)
-        else:
-            GPIO.output(pin, GPIO.LOW)
+        #if data == '1':
+            #GPIO.output(pin, GPIO.HIGH)
+        #else:
+            #GPIO.output(pin, GPIO.LOW)
         '''#print('running')
         if connected == 0:
             try:
