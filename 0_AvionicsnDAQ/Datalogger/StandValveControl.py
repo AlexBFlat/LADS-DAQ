@@ -84,6 +84,8 @@ while running == 1:        # Runs continuously, delaying by delay to achieve des
     try:
         [cmd, connected,client_socket] = TCPrecv(host,port,1,connected,client_socket,4,5,'Alex Console')
         [data, connectedDT,client_socketDT] = TCPrecv(hostDT,portDT,191,connectedDT,client_socketDT,5,5,'LJ interf')
+        move_cursor(8,1)
+        print(data)
         if cmd == '1':
             GPIO.output(pin, GPIO.HIGH)
         else:
