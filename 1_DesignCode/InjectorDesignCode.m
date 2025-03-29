@@ -15,8 +15,8 @@ mdot = 0.2915; % Total engine flowrate, in kg/s.
 of = 1.1;      % Oxidizer/Fuel ratio.
 Teth = 430;    % Sets ethanol entrance temp in K.
 l = 1e-3;      % Orifice depth in m.
-Pcns = 420;    % Chamber pressure in psia.
-Pa = 14.7*6894.76; % Atmospheric
+Pcns = 420*6894.76;    % Chamber pressure in psia.
+Pa = 101325; % Atmospheric
 
 %%% Non-user constants %%%
 Am = .00201e-3; Bm = 1614; Cm = .00618; Dm = -1.132e-5; % Constants for ethanol viscosity, bvalid 168-516 K.
@@ -28,8 +28,8 @@ mdottf = mdot/(1+of);  % Derives fuel flowrate in kg/s.
 mdotto = mdot - mdottf; % Derives oxygen flowrate in kg/s.
 Dp = Dc/(dcdp);       % Finds pintle diameter in m.
 w = 2*pi*(Dc/2)/N;    % Width of a film segment in m.
-DP = DelP/100*Pcns*6894.76; % Finds injector pressure drop in Pad.
-Pj = Pcns*6894.76+DP;       % Finds injector manifold pressure in Pa.
+DP = DelP/100*Pcns; % Finds injector pressure drop in Pad.
+Pj = Pcns+DP;       % Finds injector manifold pressure in Pa.
 Ls = LsDp*Dp;
 
 %%% Program mathematical functions %%%
