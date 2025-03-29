@@ -153,7 +153,7 @@ start_time = time.time()
 dbg = True
 runfreq = 0
 tct = 0
-lvfr = 10
+lvfr = 20
 lvlmt = 1/lvfr
 print('''|||=========================================///
 |||     LabJack U3 Interface Program       ///

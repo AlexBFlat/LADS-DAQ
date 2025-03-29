@@ -9,6 +9,7 @@ import pandas as pd
 import openpyxl
 import os
 from colorama import Fore, Back, Style, init
+import sys
 
 def clear_console():
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -83,3 +84,4 @@ try:
                
 except:
     print('failure')
+    sys.exit()
