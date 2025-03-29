@@ -13,7 +13,7 @@ datarate = 20   # Desired data rate in Hz.
 decp = 2           # Defines number of decimal points desired.
 host = '169.254.28.202'   # Listen on all available interfaces (use specific IP for remote access)
 hostcmd = '169.254.28.201'
-portcmd = 49158
+portcmd = 49157
 port = 49155       # Port to listen on (ensure it's open and available)
 
 running = 1    # Initializes running variable.
@@ -126,11 +126,11 @@ v = 0
 try:
     while running == 1:        # Runs continuously, delaying by delay to achieve desired data rate.                            
         [data,connected,client_socket] = TCPrecv(host,port,191,connected,client_socket,4,5,'LJU3 interface')
-        [logcmd,connected2,client_socket2] = TCPrecv(hostcmd,portcmd,1,connected2,client_socket2,5,5,'LJU3 interface')
+        #[logcmd,connected2,client_socket2] = TCPrecv(host,portcmd,1,connected2,client_socket2,5,5,'LJU3 interface')
         move_cursor(8,1)
         print(data)
-        move_cursor(9,1)
-        print(logcmd)
+        #move_cursor(9,1)
+        #print(logcmd)
 except Exception as e:
         print(e)
         print('Closed!')

@@ -109,7 +109,7 @@ print('''|||=========================================///
 host = '169.254.28.201'
 port = 49156
 hostDT = 'SFTSpi.local'   # Listen on all available interfaces (use specific IP for remote access)
-portDT = 49158       # Port to listen on (ensure it's open and available)
+portDT = 49157       # Port to listen on (ensure it's open and available)
 
 running = 1
 connected = 0
@@ -123,7 +123,7 @@ while running == 1:        # Runs continuously, delaying by delay to achieve des
     try:
         [cmd, connected,client_socket] = TCPrecv(host,port,1,connected,client_socket,4,5,'Alex Console')
         array_string = '1'
-        [DLConnected, DLConnection] = TCPsend(DLsock,array_string,DLConnected,DLConnection,1,'Data logger',5,5)
+        #[DLConnected, DLConnection] = TCPsend(DLsock,array_string,DLConnected,DLConnection,1,'Data logger',5,5)
         if cmd == '1':
             GPIO.output(pin, GPIO.HIGH)
         else:
