@@ -13,7 +13,7 @@ import sys
 import RPi.GPIO as GPIO
 
 GPIO.setmode(GPIO.BCM)
-pin = 17
+pin = 1
 GPIO.setup(pin, GPIO.OUT)
 
 def clear_console():
