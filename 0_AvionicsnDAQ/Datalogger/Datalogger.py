@@ -11,7 +11,7 @@ from colorama import Fore, Back, Style, init
 NumChannels = 15   # Number of channels to be used.
 datarate = 20   # Desired data rate in Hz.
 decp = 2           # Defines number of decimal points desired.
-host = '169.254.28.202'   # Listen on all available interfaces (use specific IP for remote access)
+host = 'SFTSpi.local'   # Listen on all available interfaces (use specific IP for remote access)
 hostcmd = '169.254.28.201'
 portcmd = 49157
 port = 49155       # Port to listen on (ensure it's open and available)
